@@ -1,8 +1,12 @@
 # install.package("tidyverse")
+# install.package("cluster")
+# install.package("factoextra")
 
 library(tidyverse)
+library(cluster)
+library(factoextra)
 
-df <- read.csv("file.choose()", header=T)
+df <- read.csv(file.choose(), header=T)
 
 summary(df)
 
@@ -29,5 +33,5 @@ ngo <- df %>%
     filter(CONDITION_NAME %in%c("HABraINDngo1", "HAB0INDngo1", "HABraINDngo2", "HAB0INDngo2")) %>%
     pivot_wider(names_from="CONDITION_NAME", values_from="WOULD_YOU_SAY_THIS")
 
-    ggplot(ngo, aes(HABraINDngo1,HAB0INDngo1))+geom_jitter()
+ggplot(ngo, aes(HABraINDngo1,HAB0INDngo1))+geom_jitter()
 
