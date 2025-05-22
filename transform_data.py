@@ -101,13 +101,13 @@ MORPHEME = 3
 FRAME = 4
 
 def reverse(likert):
-	if likert == 1:
+	if likert == '1':
 		return 5
-	if likert == 2:
+	if likert == '2':
 		return 4
-	if likert == 3:
+	if likert == '3':
 		return 3
-	if likert == 4:
+	if likert == '4':
 		return 2
 	return 1
 
