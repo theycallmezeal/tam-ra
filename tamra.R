@@ -1,37 +1,24 @@
-# install.package("tidyverse")
-# install.package("cluster")
-# install.package("factoextra")
-
 library(tidyverse)
 library(cluster)
 library(factoextra)
 
-df <- read.csv(file.choose(), header=T)
+df <- read.csv(file.choose(), header=T) # select transformed_data.csv
 
 summary(df)
 
-df$NORTHWEST<-"elsewhere"
-df$NORTHWEST[df$REGION%in%c("Burera", "Musanze", "Rulindo", "Gakenke", "Rubavu")]<-"northwest"
+# CHECK TO MAKE SURE THAT TRIALS OF THE SAME FRAME LOOK LIKE EACH OTHER
+# E.G. HABraINDngo1 looks like HABraINDngo2
 
-df %>%
-  filter(CONDITION_NAME %in%c("HABraINDfinal", "HAB0INDfinal")) %>%
-  ggplot(aes(CONDITION_NAME, HAVE_YOU_HEARD_THIS))+geom_boxplot()
+conditions <- list("HABraINDngo", "PROGraINDko")
 
 
-df %>%
-  filter(CONDITION_NAME %in%c("PROGraNEG1", "PROGraNEG2", "FUTraNEG1", "FUTraNEG2")) %>%
-  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST)+geom_jitter()+geom_smooth(method="lm")
-
-test = df %>%
-  filter(CONDITION_NAME %in%c("PROGraNEG1", "PROGraNEG2", "FUTraNEG1", "FUTraNEG2"), NORTHWEST!="elsewhere")
-
-  cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
-
-  
-ngo <- df %>%
+for (condition in conditions) {
+  condition1 <- paste(condition, "1", sep="")
+  condition2 <- paste(condition, "2", sep="")
+  plot = df %>%
     select(CONDITION_NAME, WOULD_YOU_SAY_THIS, RESPONDENT_ID) %>%
-    filter(CONDITION_NAME %in%c("HABraINDngo1", "HAB0INDngo1", "HABraINDngo2", "HAB0INDngo2")) %>%
+    filter(CONDITION_NAME %in%c(condition1, condition2)) %>%
     pivot_wider(names_from="CONDITION_NAME", values_from="WOULD_YOU_SAY_THIS")
-
-ggplot(ngo, aes(HABraINDngo1,HAB0INDngo1))+geom_jitter()
-
+  
+  print(ggplot(plot, aes(.data[[condition1]], .data[[condition2]]))+geom_jitter()+geom_smooth(method="lm"))
+}
