@@ -35,10 +35,14 @@ for (condition in conditions) {
 # CREATE A VERSION WHERE ONLY ONE OF EACH FRAME IS REPRESENTED
 
 df = df_all %>%
-  filter(!endsWith(CONDITION_NAME, "2"))
+  filter(!endsWith(CONDITION_NAME, "2")) %>%
+  mutate(CONDITION_NAME = gsub("1", "", CONDITION_NAME))
 
 df_wide = df %>%
-  pivot_wider(names_from="RESPONDENT_ID", values_from="WOULD_YOU_SAY_THIS")
+  pivot_wider(id_cols=c("RESPONDENT_ID", "AGE", "GENDER", "REGION", "IKIGOYI",
+                        "IKINYAGISAKA", "IKINYAMBO", "IKIRERA", "IGIKIGA"),
+              names_from="CONDITION_NAME",
+              values_from="WOULD_YOU_SAY_THIS")
 
 # PER FRAME, HOW MANY PEOPLE ACCEPT BOTH, RA ONLY, 0 ONLY, NEITHER?
 acceptability <- data.frame(TAM=character(),
@@ -53,8 +57,31 @@ frames = list("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")
 
 for (tam in tams) {
   for (frame in frames) {
-    both = df %>%
-      filter(TAM==tam) %>%
-      filter(FRAME==frame) 
+    condition_ra = paste(tam, "ra", frame, sep="")
+    condition_0 = paste(tam, "0", frame, sep="")
+    
+    both = df_wide %>%
+      filter(.data[[condition_0]] >= 4) %>%
+      filter(.data[[condition_ra]] >= 4) %>%
+      nrow()
+    
+    ra_only = df_wide %>%
+      filter(.data[[condition_0]] < 4) %>%
+      filter(.data[[condition_ra]] >= 4) %>%
+      nrow()
+    
+    O_only = df_wide %>%
+      filter(.data[[condition_0]] >= 4) %>%
+      filter(.data[[condition_ra]] < 4) %>%
+      nrow()
+    
+    neither = df_wide %>%
+      filter(.data[[condition_0]] < 4) %>%
+      filter(.data[[condition_ra]] < 4) %>%
+      nrow()
+    
+    acceptability <- rbind(acceptability, list(tam, frame, both, ra_only, O_only, neither))
   }
 }
+
+colnames(acceptability) <- list("TAM", "FRAME", "BOTH", "RA_ONLY", "O_ONLY", "NEITHER")
