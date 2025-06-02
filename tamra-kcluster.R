@@ -41,3 +41,5 @@ demographics <- df %>%
   remove_rownames() %>%
   column_to_rownames(var="RESPONDENT_ID") %>%
   mutate(Cluster = k2$cluster)
+
+

@@ -2,9 +2,9 @@ library(tidyverse)
 library(cluster)
 library(factoextra)
 
-df <- read.csv(file.choose(), header=T) # select transformed_data.csv
+df_all <- read.csv(file.choose(), header=T) # select transformed_data.csv
 
-summary(df)
+summary(df_all)
 
 # CHECK TO MAKE SURE THAT TRIALS OF THE SAME FRAME LOOK LIKE EACH OTHER
 # E.G. HABraINDngo1 looks like HABraINDngo2
@@ -21,7 +21,7 @@ for (condition in conditions) {
   condition1 <- paste(condition, "1", sep="")
   condition2 <- paste(condition, "2", sep="")
   
-  filtered_data = df %>%
+  filtered_data = df_all %>%
     select(CONDITION_NAME, WOULD_YOU_SAY_THIS, RESPONDENT_ID) %>%
     filter(CONDITION_NAME %in%c(condition1, condition2)) %>%
     pivot_wider(names_from="CONDITION_NAME", values_from="WOULD_YOU_SAY_THIS")
@@ -32,3 +32,29 @@ for (condition in conditions) {
   # print(ggplot(filtered_data, aes(.data[[condition1]], .data[[condition2]]))+geom_jitter()+geom_smooth(method="lm"))
 }
 
+# CREATE A VERSION WHERE ONLY ONE OF EACH FRAME IS REPRESENTED
+
+df = df_all %>%
+  filter(!endsWith(CONDITION_NAME, "2"))
+
+df_wide = df %>%
+  pivot_wider(names_from="RESPONDENT_ID", values_from="WOULD_YOU_SAY_THIS")
+
+# PER FRAME, HOW MANY PEOPLE ACCEPT BOTH, RA ONLY, 0 ONLY, NEITHER?
+acceptability <- data.frame(TAM=character(),
+                            FRAME=character(),
+                            BOTH=integer(),
+                            RA_ONLY=integer(),
+                            O_ONLY=integer(),
+                            NEITHER=integer())
+
+tams = list("HAB", "PROG", "FUT")
+frames = list("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")
+
+for (tam in tams) {
+  for (frame in frames) {
+    both = df %>%
+      filter(TAM==tam) %>%
+      filter(FRAME==frame) 
+  }
+}
