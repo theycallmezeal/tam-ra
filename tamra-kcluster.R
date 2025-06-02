@@ -40,7 +40,4 @@ demographics <- df %>%
   unique() %>%
   remove_rownames() %>%
   column_to_rownames(var="RESPONDENT_ID") %>%
-  mutate(Cluster = k2$cluster) %>%
-  to_csv()
-
-writeLines(format_csv(demographics), stdout())
+  mutate(Cluster = k2$cluster)
