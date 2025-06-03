@@ -34,11 +34,11 @@ for (condition in conditions) {
 
 # CREATE A VERSION WHERE ONLY ONE OF EACH FRAME IS REPRESENTED
 
-df = df_all %>%
+df_one_of_each = df_all %>%
   filter(!endsWith(CONDITION_NAME, "2")) %>%
   mutate(CONDITION_NAME = gsub("1", "", CONDITION_NAME))
 
-df_wide = df %>%
+df_wide = df_one_of_each %>%
   pivot_wider(id_cols=c("RESPONDENT_ID", "AGE", "GENDER", "REGION", "IKIGOYI",
                         "IKINYAGISAKA", "IKINYAMBO", "IKIRERA", "IGIKIGA"),
               names_from="CONDITION_NAME",
@@ -90,7 +90,29 @@ colnames(acceptability) <- list("TAM", "FRAME", "BOTH", "RA_ONLY", "O_ONLY", "NE
 
 # add variables
 df_all$NORTHWEST<-"elsewhere"
-df_all$NORTHWEST[df$REGION%in%c("Burera", "Musanze", "Rulindo", "Gakenke", "Rubavu")]<-"northwest"
+df_all$NORTHWEST[df_all$REGION%in%c("Burera", "Musanze", "Rulindo", "Gakenke", "Rubavu")]<-"northwest"
+
+df_all$NORTHWEST_DIALECT <- FALSE
+df_all$NORTHWEST_DIALECT[df_all$IKIGOYI] <- TRUE
+df_all$NORTHWEST_DIALECT[df_all$IKIRERA] <- TRUE
+
+# is ra more obligatory before ngo among young people? i.e. is 0 less acceptable among young people? (p = 0.8901)
+
+test = df_all %>%
+  filter(CONDITION_NAME %in% c("HAB0INDngo1", "HAB0INDngo2"))
+cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
+
+# is the PROG reading of ra- less acceptable among young people? (p = 0.1586)
+
+test = df_all %>%
+  filter(CONDITION_NAME %in% c("PROGraINDfinal1", "PROGraINDfinal2"))
+cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
+
+# control: the FUT reading of ra- should be equally acceptable regardless of age for all
+
+test = df_all %>%
+  filter(CONDITION_NAME %in% c("FUTraINDfinal1", "FUTraINDfinal2"))
+cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
 
 # control: ra before DP objects should be equally acceptable regardless of age for all (p = 0.1947)
 
@@ -98,25 +120,48 @@ test = df_all %>%
   filter(CONDITION_NAME %in% c("PROGraINDDP1", "PROGraINDDP2", "FUTraINDDP1", "FUTraINDDP2"))
 cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
 
-# TAM ra under negation is more acceptable among young people outside of the Northwest (p = 0.03241)
+# TAM ra under negation is more acceptable among young people outside of the Northwest (p = 0.003761)
 
 test = df_all %>%
   filter(CONDITION_NAME %in%c("PROGraNEG1", "PROGraNEG2", "FUTraNEG1", "FUTraNEG2"), NORTHWEST!="northwest")
 cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
 
-# TAM ra under relativization is more acceptable among young people outside of the Northwest (p = 0.0938)
+# TAM ra under relativization is more acceptable among young people outside of the Northwest (p = 0.0373)
 
 test = df_all %>%
   filter(CONDITION_NAME %in%c("PROGraREL1", "PROGraREL2", "FUTraREL1", "FUTraREL2"), NORTHWEST!="northwest")
 cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
 
-# TAM ra under participials is more acceptable among young people outside of the Northwest (p = 0.3482)
+# TAM ra under participials is more acceptable among young people outside of the Northwest (p = 0.6484)
 
 test = df_all %>%
   filter(CONDITION_NAME %in%c("PROGraPART1", "PROGraPART2", "FUTraPART1", "FUTraPART2"), NORTHWEST!="northwest")
 cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
 
+# TAM ra under negation is more acceptable among young people who don't speak ikigoyi / ikirera (p = 0.02133)
+
+test = df_all %>%
+  filter(CONDITION_NAME %in%c("PROGraNEG1", "PROGraNEG2", "FUTraNEG1", "FUTraNEG2"), NORTHWEST_DIALECT==FALSE)
+cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
+
+# TAM ra under relativization is more acceptable among young people who don't speak ikigoyi / ikirera (p = 0.1147)
+
+test = df_all %>%
+  filter(CONDITION_NAME %in%c("PROGraREL1", "PROGraREL2", "FUTraREL1", "FUTraREL2"), NORTHWEST_DIALECT==FALSE)
+cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
+
+# TAM ra under participials is more acceptable among young people who don't speak ikigoyi / ikirera (p = 0.6774)
+
+test = df_all %>%
+  filter(CONDITION_NAME %in%c("PROGraPART1", "PROGraPART2", "FUTraPART1", "FUTraPART2"), NORTHWEST_DIALECT==FALSE)
+cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
+
 # HYPOTHESIS-RELATED PLOTS
+
+# ngo
+df_all %>%
+  filter(CONDITION_NAME %in%c("HAB0INDngo1", "HAB0INDngo2")) %>%
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST)+geom_jitter()+geom_smooth(method="lm")
 
 # DP
 df_all %>%
@@ -128,12 +173,36 @@ df_all %>%
   filter(CONDITION_NAME %in%c("PROGraNEG1", "PROGraNEG2", "FUTraNEG1", "FUTraNEG2")) %>%
   ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST)+geom_jitter()+geom_smooth(method="lm")
 
+df_all %>%
+  filter(CONDITION_NAME %in%c("PROGraNEG1", "PROGraNEG2", "FUTraNEG1", "FUTraNEG2")) %>%
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST_DIALECT)+geom_jitter()+geom_smooth(method="lm")
+
 # relativization
 df_all %>%
   filter(CONDITION_NAME %in%c("PROGraREL1", "PROGraREL2", "FUTraREL1", "FUTraREL2")) %>%
   ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST)+geom_jitter()+geom_smooth(method="lm")
 
+df_all %>%
+  filter(CONDITION_NAME %in%c("PROGraREL1", "PROGraREL2", "FUTraREL1", "FUTraREL2")) %>%
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST_DIALECT)+geom_jitter()+geom_smooth(method="lm")
+
 # participial
 df_all %>%
   filter(CONDITION_NAME %in%c("PROGraREL1", "PROGraREL2", "FUTraREL1", "FUTraREL2")) %>%
   ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST)+geom_jitter()+geom_smooth(method="lm")
+
+df_all %>%
+  filter(CONDITION_NAME %in%c("PROGraREL1", "PROGraREL2", "FUTraREL1", "FUTraREL2")) %>%
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST_DIALECT)+geom_jitter()+geom_smooth(method="lm")
+
+# WHAT DOES TAM RA- MEAN?
+
+# TODO facet by age, region, dialect
+# final
+df_wide %>%
+  ggplot(aes(PROGraINDfinal, FUTraINDfinal))+geom_jitter()
+
+# before a DP
+df_wide %>%
+  ggplot(aes(PROGraINDDP, FUTraINDDP))+geom_jitter()
+
