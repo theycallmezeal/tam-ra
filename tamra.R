@@ -143,6 +143,12 @@ test = df_all %>%
   filter(CONDITION_NAME %in% c("HAB0INDngo1", "HAB0INDngo2"))
 cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
 
+# is 0 less acceptable before ngo among young northwesterners? (p = 0.1107)
+
+test = df_all %>%
+  filter(CONDITION_NAME %in% c("HAB0INDngo1", "HAB0INDngo2"), NORTHWEST)
+cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
+
 # is the PROG reading of ra- less acceptable among young people? (p = 0.1586)
 
 test = df_all %>%
@@ -156,6 +162,7 @@ test = df_all %>%
 cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
 
 # control: ra before DP objects should be equally acceptable regardless of age for all (p = 0.1947)
+# TODO how to statistically show NO relationship between two variables?
 
 test = df_all %>%
   filter(CONDITION_NAME %in% c("PROGraINDDP1", "PROGraINDDP2", "FUTraINDDP1", "FUTraINDDP2"))
@@ -207,7 +214,15 @@ df_all %>%
 # ngo
 df_all %>%
   filter(CONDITION_NAME %in%c("HAB0INDngo1", "HAB0INDngo2")) %>%
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+geom_jitter()+geom_smooth(method="lm")
+
+df_all %>%
+  filter(CONDITION_NAME %in%c("HAB0INDngo1", "HAB0INDngo2")) %>%
   ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST)+geom_jitter()+geom_smooth(method="lm")
+
+df_all %>%
+  filter(CONDITION_NAME %in%c("HAB0INDngo1", "HAB0INDngo2")) %>%
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST_DIALECT)+geom_jitter()+geom_smooth(method="lm")
 
 # DP
 df_all %>%
@@ -243,8 +258,37 @@ df_all %>%
 
 # WHAT DOES TAM RA- MEAN?
 
-# TODO facet by age, region, dialect
+# pull stats for only the people who like PROG
+prog_likers <- df_all %>%
+  filter(
+    (CONDITION_NAME %in% c("PROGraINDfinal1") & WOULD_YOU_SAY_THIS >= 4) |
+    (CONDITION_NAME %in% c("PROGraINDfinal2") & WOULD_YOU_SAY_THIS >= 4)
+  ) %>%
+  pull(RESPONDENT_ID) %>%
+  unique()
+
+fut_likers <- df_all %>%
+  filter(
+    (CONDITION_NAME %in% c("FUTraINDfinal1") & WOULD_YOU_SAY_THIS >= 4) |
+      (CONDITION_NAME %in% c("FUTraINDfinal2") & WOULD_YOU_SAY_THIS >= 4)
+  ) %>%
+  pull(RESPONDENT_ID) %>%
+  unique()
+
+
+df_all %>%
+  filter(TAM=="FUT", FRAME=="REL", MORPHEME=="0", RESPONDENT_ID %in% prog_likers) %>%
+  pull(WOULD_YOU_SAY_THIS) %>%
+  mean()
+
 # final
+df_wide %>%
+  ggplot(aes(PROGraINDfinal, FUTraINDfinal))+geom_jitter()
+
+df_wide %>%
+  filter(PROGraINDfinal < 4, FUTraINDfinal >= 4) %>%
+  nrow()
+
 df_wide %>%
   ggplot(aes(PROGraINDfinal, FUTraINDfinal))+facet_wrap(~YOUNG)+geom_jitter()
 
