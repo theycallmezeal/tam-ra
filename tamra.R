@@ -204,7 +204,23 @@ test = df_all %>%
   filter(CONDITION_NAME %in%c("PROGraPART1", "PROGraPART2", "FUTraPART1", "FUTraPART2"), NORTHWEST_DIALECT==FALSE)
 cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
 
+# periphrastics are more acceptable among young people (p = 0.02565)
+
+test = df_all %>%
+  filter(grepl("PROGp", CONDITION_NAME, fixed=TRUE))
+cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
+
 # HYPOTHESIS-RELATED PLOTS
+
+region_labeler = function (is_northwest) {
+  is_northwest %>%
+    mutate(NORTHWEST = ifelse(NORTHWEST, "Northwest", "Elsewhere"))
+}
+
+dialect_labeler = function (is_northwest) {
+  is_northwest %>%
+    mutate(NORTHWEST_DIALECT = ifelse(NORTHWEST_DIALECT, "Northwest Dialect", "Other Dialects"))
+}
 
 # prog ra-
 df_all %>%
@@ -218,11 +234,11 @@ df_all %>%
 
 df_all %>%
   filter(CONDITION_NAME %in%c("HAB0INDngo1", "HAB0INDngo2")) %>%
-  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST)+geom_jitter()+geom_smooth(method="lm")
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST, labeller=region_labeler)+geom_jitter()+geom_smooth(method="lm")
 
 df_all %>%
   filter(CONDITION_NAME %in%c("HAB0INDngo1", "HAB0INDngo2")) %>%
-  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST_DIALECT)+geom_jitter()+geom_smooth(method="lm")
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST_DIALECT, labeller=dialect_labeler)+geom_jitter()+geom_smooth(method="lm")
 
 # DP
 df_all %>%
@@ -232,29 +248,42 @@ df_all %>%
 # negation
 df_all %>%
   filter(CONDITION_NAME %in%c("PROGraNEG1", "PROGraNEG2", "FUTraNEG1", "FUTraNEG2")) %>%
-  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST)+geom_jitter()+geom_smooth(method="lm")
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST, labeller=region_labeler)+geom_jitter()+geom_smooth(method="lm")
 
 df_all %>%
   filter(CONDITION_NAME %in%c("PROGraNEG1", "PROGraNEG2", "FUTraNEG1", "FUTraNEG2")) %>%
-  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST_DIALECT)+geom_jitter()+geom_smooth(method="lm")
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST_DIALECT, labeller=dialect_labeler)+geom_jitter()+geom_smooth(method="lm")
 
 # relativization
 df_all %>%
   filter(CONDITION_NAME %in%c("PROGraREL1", "PROGraREL2", "FUTraREL1", "FUTraREL2")) %>%
-  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST)+geom_jitter()+geom_smooth(method="lm")
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST, labeller=region_labeler)+geom_jitter()+geom_smooth(method="lm")
 
 df_all %>%
   filter(CONDITION_NAME %in%c("PROGraREL1", "PROGraREL2", "FUTraREL1", "FUTraREL2")) %>%
-  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST_DIALECT)+geom_jitter()+geom_smooth(method="lm")
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST_DIALECT, labeller=dialect_labeler)+geom_jitter()+geom_smooth(method="lm")
 
 # participial
 df_all %>%
   filter(CONDITION_NAME %in%c("PROGraREL1", "PROGraREL2", "FUTraREL1", "FUTraREL2")) %>%
-  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST)+geom_jitter()+geom_smooth(method="lm")
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST, labeller=region_labeler)+geom_jitter()+geom_smooth(method="lm")
 
 df_all %>%
   filter(CONDITION_NAME %in%c("PROGraREL1", "PROGraREL2", "FUTraREL1", "FUTraREL2")) %>%
-  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST_DIALECT)+geom_jitter()+geom_smooth(method="lm")
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST_DIALECT, labeller=dialect_labeler)+geom_jitter()+geom_smooth(method="lm")
+
+# periphrastic
+df_all %>%
+  filter(grepl("PROGp", CONDITION_NAME, fixed=TRUE)) %>%
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+geom_jitter()+geom_smooth(method="lm")
+
+df_all %>%
+  filter(grepl("PROGp", CONDITION_NAME, fixed=TRUE)) %>%
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST, labeller=region_labeler)+geom_jitter()+geom_smooth(method="lm")
+
+df_all %>%
+  filter(grepl("PROGp", CONDITION_NAME, fixed=TRUE)) %>%
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST_DIALECT, labeller=dialect_labeler)+geom_jitter()+geom_smooth(method="lm")
 
 # WHAT DOES TAM RA- MEAN?
 
@@ -293,17 +322,17 @@ df_wide %>%
   ggplot(aes(PROGraINDfinal, FUTraINDfinal))+facet_wrap(~YOUNG)+geom_jitter()
 
 df_wide %>%
-  ggplot(aes(PROGraINDfinal, FUTraINDfinal))+facet_wrap(~NORTHWEST)+geom_jitter()
+  ggplot(aes(PROGraINDfinal, FUTraINDfinal))+facet_wrap(~NORTHWEST, labeller=region_labeler)+geom_jitter()
 
 df_wide %>%
-  ggplot(aes(PROGraINDfinal, FUTraINDfinal))+facet_wrap(~NORTHWEST_DIALECT)+geom_jitter()
+  ggplot(aes(PROGraINDfinal, FUTraINDfinal))+facet_wrap(~NORTHWEST_DIALECT, labeller=dialect_labeler)+geom_jitter()
 
 # before a DP
 df_wide %>%
   ggplot(aes(PROGraINDDP, FUTraINDDP))+facet_wrap(~YOUNG)+geom_jitter()
 
 df_wide %>%
-  ggplot(aes(PROGraINDDP, FUTraINDDP))+facet_wrap(~NORTHWEST)+geom_jitter()
+  ggplot(aes(PROGraINDDP, FUTraINDDP))+facet_wrap(~NORTHWEST, labeller=region_labeler)+geom_jitter()
 
 df_wide %>%
-  ggplot(aes(PROGraINDDP, FUTraINDDP))+facet_wrap(~NORTHWEST_DIALECT)+geom_jitter()
+  ggplot(aes(PROGraINDDP, FUTraINDDP))+facet_wrap(~NORTHWEST_DIALECT, labeller=dialect_labeler)+geom_jitter()
