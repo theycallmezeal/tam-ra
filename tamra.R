@@ -88,7 +88,7 @@ colnames(acceptability) <- list("TAM", "FRAME", "BOTH", "RA_ONLY", "O_ONLY", "NE
 
 # HYPOTHESIS TESTING
 
-# add Northwest variable
+# add variables
 df_all$NORTHWEST<-"elsewhere"
 df_all$NORTHWEST[df$REGION%in%c("Burera", "Musanze", "Rulindo", "Gakenke", "Rubavu")]<-"northwest"
 
