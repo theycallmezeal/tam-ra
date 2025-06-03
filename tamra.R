@@ -85,3 +85,44 @@ for (tam in tams) {
 }
 
 colnames(acceptability) <- list("TAM", "FRAME", "BOTH", "RA_ONLY", "O_ONLY", "NEITHER")
+
+# HYPOTHESIS TESTING
+
+# add Northwest variable
+df_all$NORTHWEST<-"elsewhere"
+df_all$NORTHWEST[df$REGION%in%c("Burera", "Musanze", "Rulindo", "Gakenke", "Rubavu")]<-"northwest"
+
+# TAM ra under negation is more acceptable among young people outside of the Northwest (p = 0.03241)
+
+test = df_all %>%
+  filter(CONDITION_NAME %in%c("PROGraNEG1", "PROGraNEG2", "FUTraNEG1", "FUTraNEG2"), NORTHWEST!="northwest")
+cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
+
+# TAM ra under relativization is more acceptable among young people outside of the Northwest (p = 0.0938)
+
+test = df_all %>%
+  filter(CONDITION_NAME %in%c("PROGraREL1", "PROGraREL2", "FUTraREL1", "FUTraREL2"), NORTHWEST!="northwest")
+cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
+
+# TAM ra under participials is more acceptable among young people outside of the Northwest (p = 0.3482)
+
+test = df_all %>%
+  filter(CONDITION_NAME %in%c("PROGraPART1", "PROGraPART2", "FUTraPART1", "FUTraPART2"), NORTHWEST!="northwest")
+cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
+
+# HYPOTHESIS-RELATED PLOTS
+
+# negation
+df_all %>%
+  filter(CONDITION_NAME %in%c("PROGraNEG1", "PROGraNEG2", "FUTraNEG1", "FUTraNEG2")) %>%
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST)+geom_jitter()+geom_smooth(method="lm")
+
+# relativization
+df_all %>%
+  filter(CONDITION_NAME %in%c("PROGraREL1", "PROGraREL2", "FUTraREL1", "FUTraREL2")) %>%
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST)+geom_jitter()+geom_smooth(method="lm")
+
+# participial
+df_all %>%
+  filter(CONDITION_NAME %in%c("PROGraREL1", "PROGraREL2", "FUTraREL1", "FUTraREL2")) %>%
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST)+geom_jitter()+geom_smooth(method="lm")
