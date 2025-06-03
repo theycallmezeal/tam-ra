@@ -92,6 +92,12 @@ colnames(acceptability) <- list("TAM", "FRAME", "BOTH", "RA_ONLY", "O_ONLY", "NE
 df_all$NORTHWEST<-"elsewhere"
 df_all$NORTHWEST[df$REGION%in%c("Burera", "Musanze", "Rulindo", "Gakenke", "Rubavu")]<-"northwest"
 
+# control: ra before DP objects should be equally acceptable regardless of age for all (p = 0.1947)
+
+test = df_all %>%
+  filter(CONDITION_NAME %in% c("PROGraINDDP1", "PROGraINDDP2", "FUTraINDDP1", "FUTraINDDP2"))
+cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
+
 # TAM ra under negation is more acceptable among young people outside of the Northwest (p = 0.03241)
 
 test = df_all %>%
@@ -111,6 +117,11 @@ test = df_all %>%
 cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
 
 # HYPOTHESIS-RELATED PLOTS
+
+# DP
+df_all %>%
+  filter(CONDITION_NAME %in%c("PROGraINDDP1", "PROGraINDDP2", "FUTraINDDP1", "FUTraINDDP2")) %>%
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+geom_jitter()+geom_smooth(method="lm")
 
 # negation
 df_all %>%
