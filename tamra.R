@@ -63,6 +63,38 @@ df_wide_one_of_each = df_all %>%
               names_from="CONDITION_NAME",
               values_from="WOULD_YOU_SAY_THIS")
 
+# HOW MANY PEOPLE LIKE PROG RA EVERYWHERE?
+
+prog_ra_everywhere_likers = df_wide %>%
+  filter(
+    (PROGraINDfinal1 >= 4 | PROGraINDfinal2 >= 4) &
+      (PROGraINDDP1 >= 4 | PROGraINDDP2 >= 4) &
+      (PROGraINDngo1 >= 4 | PROGraINDngo2 >= 4) &
+      (PROGraINDko1 >= 4 | PROGraINDko2 >= 4) &
+      (PROGraNEG1 >= 4 | PROGraNEG2 >= 4) &
+      (PROGraREL1 >= 4 | PROGraREL2 >= 4) &
+      (PROGraPART1 >= 4 | PROGraPART2 >= 4)
+  ) %>%
+  select(RESPONDENT_ID, AGE, REGION, NORTHWEST, IKIGOYI, IKIRERA, IKINYAGISAKA, IGIKIGA,
+         IKINYAMBO, NORTHWEST_DIALECT)
+summary(prog_ra_everywhere_likers)
+
+# HOW MANY PEOPLE LIKE FUT RA EVERYWHERE?
+
+fut_ra_everywhere_likers = df_wide %>%
+  filter(
+    (FUTraINDfinal1 >= 4 | FUTraINDfinal2 >= 4) &
+      (FUTraINDDP1 >= 4 | FUTraINDDP2 >= 4) &
+      (FUTraINDngo1 >= 4 | FUTraINDngo2 >= 4) &
+      (FUTraINDko1 >= 4 | FUTraINDko2 >= 4) &
+      (FUTraNEG1 >= 4 | FUTraNEG2 >= 4) &
+      (FUTraREL1 >= 4 | FUTraREL2 >= 4) &
+      (FUTraPART1 >= 4 | FUTraPART2 >= 4)
+  ) %>%
+  select(RESPONDENT_ID, AGE, REGION, NORTHWEST, IKIGOYI, IKIRERA, IKINYAGISAKA, IGIKIGA,
+         IKINYAMBO, NORTHWEST_DIALECT)
+summary(fut_ra_everywhere_likers)
+
 # PER FRAME, HOW MANY PEOPLE ACCEPT BOTH, RA ONLY, 0 ONLY, NEITHER?
 generate_acceptability <- function(data) {
   acceptability <- data.frame(TAM=character(),
