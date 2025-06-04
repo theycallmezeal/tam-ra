@@ -44,9 +44,17 @@ for (condition in conditions) {
   # print(ggplot(filtered_data, aes(.data[[condition1]], .data[[condition2]]))+geom_jitter()+geom_smooth(method="lm"))
 }
 
-# CREATE A VERSION WHERE ONLY ONE OF EACH FRAME IS REPRESENTED
+# CREATE WIDE VERSION
+# AND A WIDE VERSION WHERE ONLY ONE OF EACH FRAME IS REPRESENTED
 
 df_wide = df_all %>%
+  pivot_wider(id_cols=c("RESPONDENT_ID", "AGE", "GENDER", "REGION", "IKIGOYI",
+                        "IKINYAGISAKA", "IKINYAMBO", "IKIRERA", "IGIKIGA",
+                        "NORTHWEST", "NORTHWEST_DIALECT", "YOUNG"),
+              names_from="CONDITION_NAME",
+              values_from="WOULD_YOU_SAY_THIS")
+
+df_wide_one_of_each = df_all %>%
   filter(!endsWith(CONDITION_NAME, "2")) %>%
   mutate(CONDITION_NAME = gsub("1", "", CONDITION_NAME)) %>%
   pivot_wider(id_cols=c("RESPONDENT_ID", "AGE", "GENDER", "REGION", "IKIGOYI",
@@ -101,37 +109,37 @@ generate_acceptability <- function(data) {
   return(acceptability)
 }
 
-df_wide %>% generate_acceptability()
+df_wide_one_of_each %>% generate_acceptability()
 
-df_wide %>%
+df_wide_one_of_each %>%
   filter(YOUNG) %>%
   generate_acceptability()
 
-df_wide %>%
+df_wide_one_of_each %>%
   filter(!YOUNG) %>%
   generate_acceptability()
 
-df_wide %>%
+df_wide_one_of_each %>%
   filter(NORTHWEST) %>%
   generate_acceptability()
 
-df_wide %>%
+df_wide_one_of_each %>%
   filter(!NORTHWEST) %>%
   generate_acceptability()
 
-df_wide %>%
+df_wide_one_of_each %>%
   filter(NORTHWEST_DIALECT) %>%
   generate_acceptability()
 
-df_wide %>%
+df_wide_one_of_each %>%
   filter(!NORTHWEST_DIALECT) %>%
   generate_acceptability()
 
-df_wide %>%
+df_wide_one_of_each %>%
   filter(PROGraINDfinal >= 4) %>%
   generate_acceptability()
 
-df_wide %>%
+df_wide_one_of_each %>%
   filter(FUTraINDfinal >= 4) %>%
   generate_acceptability()
 
@@ -265,11 +273,11 @@ df_all %>%
 
 # participial
 df_all %>%
-  filter(CONDITION_NAME %in%c("PROGraREL1", "PROGraREL2", "FUTraREL1", "FUTraREL2")) %>%
+  filter(CONDITION_NAME %in%c("PROGraPART1", "PROGraPART2", "FUTraPART1", "FUTraPART2")) %>%
   ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST, labeller=region_labeler)+geom_jitter()+geom_smooth(method="lm")
 
 df_all %>%
-  filter(CONDITION_NAME %in%c("PROGraREL1", "PROGraREL2", "FUTraREL1", "FUTraREL2")) %>%
+  filter(CONDITION_NAME %in%c("PROGraPART1", "PROGraPART2", "FUTraPART1", "FUTraPART2")) %>%
   ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST_DIALECT, labeller=dialect_labeler)+geom_jitter()+geom_smooth(method="lm")
 
 # periphrastic
@@ -311,28 +319,28 @@ df_all %>%
   mean()
 
 # final
-df_wide %>%
+df_wide_one_of_each %>%
   ggplot(aes(PROGraINDfinal, FUTraINDfinal))+geom_jitter()
 
-df_wide %>%
+df_wide_one_of_each %>%
   filter(PROGraINDfinal < 4, FUTraINDfinal >= 4) %>%
   nrow()
 
-df_wide %>%
+df_wide_one_of_each %>%
   ggplot(aes(PROGraINDfinal, FUTraINDfinal))+facet_wrap(~YOUNG)+geom_jitter()
 
-df_wide %>%
+df_wide_one_of_each %>%
   ggplot(aes(PROGraINDfinal, FUTraINDfinal))+facet_wrap(~NORTHWEST, labeller=region_labeler)+geom_jitter()
 
-df_wide %>%
+df_wide_one_of_each %>%
   ggplot(aes(PROGraINDfinal, FUTraINDfinal))+facet_wrap(~NORTHWEST_DIALECT, labeller=dialect_labeler)+geom_jitter()
 
 # before a DP
-df_wide %>%
+df_wide_one_of_each %>%
   ggplot(aes(PROGraINDDP, FUTraINDDP))+facet_wrap(~YOUNG)+geom_jitter()
 
-df_wide %>%
+df_wide_one_of_each %>%
   ggplot(aes(PROGraINDDP, FUTraINDDP))+facet_wrap(~NORTHWEST, labeller=region_labeler)+geom_jitter()
 
-df_wide %>%
+df_wide_one_of_each %>%
   ggplot(aes(PROGraINDDP, FUTraINDDP))+facet_wrap(~NORTHWEST_DIALECT, labeller=dialect_labeler)+geom_jitter()
