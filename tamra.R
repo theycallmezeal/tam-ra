@@ -250,6 +250,30 @@ test = df_all %>%
   filter(grepl("PROGp", CONDITION_NAME, fixed=TRUE))
 cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
 
+# periphrastics are more acceptable among young people in the Northwest (p = 0.277)
+
+test = df_all %>%
+  filter(grepl("PROGp", CONDITION_NAME, fixed=TRUE), NORTHWEST==TRUE)
+cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
+
+# periphrastics are more acceptable among young people outside of the Northwest (p = 0.004)
+
+test = df_all %>%
+  filter(grepl("PROGp", CONDITION_NAME, fixed=TRUE), NORTHWEST==FALSE)
+cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
+
+# periphrastics are more acceptable among young people who speak Northwestern dialects (p = 0.9691)
+
+test = df_all %>%
+  filter(grepl("PROGp", CONDITION_NAME, fixed=TRUE), NORTHWEST_DIALECT==TRUE)
+cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
+
+# periphrastics are more acceptable among young people who don't speak Northwestern dialects (p = 0.005)
+
+test = df_all %>%
+  filter(grepl("PROGp", CONDITION_NAME, fixed=TRUE), NORTHWEST_DIALECT==FALSE)
+cor.test(test$AGE, test$WOULD_YOU_SAY_THIS)
+
 # HYPOTHESIS-RELATED PLOTS
 
 region_labeler = function (is_northwest) {
@@ -311,6 +335,12 @@ df_all %>%
 df_all %>%
   filter(CONDITION_NAME %in%c("PROGraPART1", "PROGraPART2", "FUTraPART1", "FUTraPART2")) %>%
   ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST_DIALECT, labeller=dialect_labeler)+geom_jitter()+geom_smooth(method="lm")
+
+# but people don't like 0 for participial either
+
+df_all %>%
+  filter(CONDITION_NAME %in%c("PROG0PART1", "PROG0PART2", "FUT0PART1", "FUT0PART2")) %>%
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+geom_jitter()+geom_smooth(method="lm")
 
 # periphrastic
 df_all %>%
