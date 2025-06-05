@@ -4,8 +4,6 @@ library(factoextra)
 
 df_all <- read.csv(file.choose(), header=T) # select transformed_data.csv
 
-summary(df_all)
-
 # add variables
 df_all$NORTHWEST <- FALSE
 df_all$NORTHWEST[df_all$REGION%in%c("Burera", "Musanze", "Rulindo", "Gakenke",
@@ -17,6 +15,11 @@ df_all$NORTHWEST_DIALECT[df_all$IKIRERA] <- TRUE
 
 df_all$YOUNG <- FALSE
 df_all$YOUNG[df_all$AGE < 35] <- TRUE
+
+df_all$IS_FEMALE <- FALSE
+df_all$IS_FEMALE[df_all$GENDER == "female"] <- TRUE
+
+summary(df_all)
 
 # CHECK TO MAKE SURE THAT TRIALS OF THE SAME FRAME LOOK LIKE EACH OTHER
 # E.G. HABraINDngo1 looks like HABraINDngo2
@@ -50,16 +53,33 @@ for (condition in conditions) {
 df_wide = df_all %>%
   pivot_wider(id_cols=c("RESPONDENT_ID", "AGE", "GENDER", "REGION", "IKIGOYI",
                         "IKINYAGISAKA", "IKINYAMBO", "IKIRERA", "IGIKIGA",
-                        "NORTHWEST", "NORTHWEST_DIALECT", "YOUNG"),
+                        "NORTHWEST", "NORTHWEST_DIALECT", "YOUNG", "IS_FEMALE"),
               names_from="CONDITION_NAME",
               values_from="WOULD_YOU_SAY_THIS")
+
+# summarize demographics
+df_wide %>%
+  select("AGE", "IS_FEMALE", "REGION", "IKIGOYI", "IKIRERA", "IKINYAGISAKA",
+         "IKINYAMBO", "IKIRERA", "IGIKIGA") %>%
+  summary()
+
+# age by gender
+df_wide %>%
+  filter(IS_FEMALE==TRUE) %>%
+  select("AGE") %>%
+  summary()
+
+df_wide %>%
+  filter(IS_FEMALE==FALSE) %>%
+  select("AGE") %>%
+  summary()
 
 df_wide_one_of_each = df_all %>%
   filter(!endsWith(CONDITION_NAME, "2")) %>%
   mutate(CONDITION_NAME = gsub("1", "", CONDITION_NAME)) %>%
   pivot_wider(id_cols=c("RESPONDENT_ID", "AGE", "GENDER", "REGION", "IKIGOYI",
                         "IKINYAGISAKA", "IKINYAMBO", "IKIRERA", "IGIKIGA",
-                        "NORTHWEST", "NORTHWEST_DIALECT", "YOUNG"),
+                        "NORTHWEST", "NORTHWEST_DIALECT", "YOUNG", "IS_FEMALE"),
               names_from="CONDITION_NAME",
               values_from="WOULD_YOU_SAY_THIS")
 
@@ -405,4 +425,6 @@ df_wide_one_of_each %>%
   ggplot(aes(PROGraINDDP, FUTraINDDP))+facet_wrap(~NORTHWEST, labeller=region_labeler)+geom_jitter()
 
 df_wide_one_of_each %>%
-  ggplot(aes(PROGraINDDP, FUTraINDDP))+facet_wrap(~NORTHWEST_DIALECT, labeller=dialect_labeler)+geom_jitter()
+  ggplot(aes(PROGraINDDP, FUTraINDDP))+facet_wrap(~NORTHWEST_DIALECT, labeller=dialect_labeler)+geom_jitter(
+    
+# Do young people like
