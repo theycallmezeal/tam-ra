@@ -345,15 +345,15 @@ df_all %>%
 # periphrastic
 df_all %>%
   filter(grepl("PROGp", CONDITION_NAME, fixed=TRUE)) %>%
-  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+geom_jitter()+geom_smooth(method="lm")
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS))+geom_jitter()+geom_smooth(method="lm")
 
 df_all %>%
   filter(grepl("PROGp", CONDITION_NAME, fixed=TRUE)) %>%
-  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST, labeller=region_labeler)+geom_jitter()+geom_smooth(method="lm")
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS))+facet_wrap(~NORTHWEST, labeller=region_labeler)+geom_jitter()+geom_smooth(method="lm")
 
 df_all %>%
   filter(grepl("PROGp", CONDITION_NAME, fixed=TRUE)) %>%
-  ggplot(aes(AGE, WOULD_YOU_SAY_THIS, color=TAM))+facet_wrap(~NORTHWEST_DIALECT, labeller=dialect_labeler)+geom_jitter()+geom_smooth(method="lm")
+  ggplot(aes(AGE, WOULD_YOU_SAY_THIS))+facet_wrap(~NORTHWEST_DIALECT, labeller=dialect_labeler)+geom_jitter()+geom_smooth(method="lm")
 
 # WHAT DOES TAM RA- MEAN?
 
