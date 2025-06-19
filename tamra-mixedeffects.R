@@ -1,5 +1,6 @@
 library(tidyverse)
 library(factoextra)
+library(lmerTest)
 
 df_raw <- read.csv(file.choose(), header=T) # select transformed_data.csv
 
@@ -80,4 +81,77 @@ df_improvements = df_wide %>%
   mutate(FUTREL = FUTraREL - FUT0REL) %>%
   mutate(FUTPART = FUTraPART - FUT0PART) %>%
   select(-contains(c("0", "ra", "PROGp"), ignore.case=FALSE)) %>%
-  pivot_longer(!all_of(c("RESPONDENT_ID", "AGE", "GENDER", "REGION", "NORTHWEST", "NORTHWEST_DIALECT")), names_to="frame", values_to="improvement")
+  pivot_longer(!all_of(c("RESPONDENT_ID", "AGE", "GENDER", "REGION",
+                         "NORTHWEST", "NORTHWEST_DIALECT")),
+               names_to="CONDITION", values_to="IMPROVEMENT")
+
+df_improvements$TAM <- "HAB"
+df_improvements$TAM[grepl("PROG", df_improvements$CONDITION)] <- "PROG"
+df_improvements$TAM[grepl("FUT", df_improvements$CONDITION)] <- "FUT"
+
+df_improvements$FRAME <- "INDDP"
+df_improvements$FRAME[grepl("INDfinal", df_improvements$CONDITION)] <- "INDfinal"
+df_improvements$FRAME[grepl("INDngo", df_improvements$CONDITION)] <- "INDngo"
+df_improvements$FRAME[grepl("INDko", df_improvements$CONDITION)] <- "INDko"
+df_improvements$FRAME[grepl("NEG", df_improvements$CONDITION)] <- "NEG"
+df_improvements$FRAME[grepl("REL", df_improvements$CONDITION)] <- "REL"
+df_improvements$FRAME[grepl("PART", df_improvements$CONDITION)] <- "PART"
+
+# EVERYTHING
+summary(
+  lmer(
+    IMPROVEMENT
+    ~ AGE * GENDER * NORTHWEST
+    + TAM + FRAME + (1 | RESPONDENT_ID),
+    data=df_improvements
+  )
+)
+
+
+# NGO
+
+# too few observations to use improvements
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST
+    + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(CONDITION_NAME %in% c("HAB0INDngo1", "HAB0INDngo2"))
+  )
+)
+
+# NEGATION, RELATIVIZATION
+
+summary(
+  lmer(
+    IMPROVEMENT
+    ~ AGE * GENDER * NORTHWEST
+    + (1 | RESPONDENT_ID),
+    data=df_improvements %>%
+      filter(FRAME %in% c("NEG", "REL"))
+    )
+)
+
+# PARTICIPIAL
+
+summary(
+  lmer(
+    IMPROVEMENT
+    ~ AGE * GENDER * NORTHWEST
+    + (1 | RESPONDENT_ID),
+    data=df_improvements %>%
+      filter(FRAME %in% c("PART"))
+  )
+)
+
+# PERIPHRASTIC
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST
+    + MORPHEME + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(TAM == "PROG")
+  )
+)
