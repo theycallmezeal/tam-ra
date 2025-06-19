@@ -2,9 +2,6 @@ library(tidyverse)
 library(factoextra)
 library(ordinal)
 
-install.packages("factoextra")
-install.packages("ordinal")
-
 df_all <- read.csv(file.choose(), header=T) # select transformed_data.csv
 
 # add variables
@@ -165,7 +162,7 @@ m1<-lmer(SCALED_WOULD_YOU_SAY_THIS
 
 summary(m1)
 
-Sggplot(df_new, aes(AGE, WOULD_YOU_SAY_THIS))+geom_smooth(method="lm")
+ggplot(df_new, aes(AGE, WOULD_YOU_SAY_THIS))+geom_smooth(method="lm")
 
 ggplot(df_new, aes(AGE, SCALED_WOULD_YOU_SAY_THIS))+geom_smooth(method="lm")
 
