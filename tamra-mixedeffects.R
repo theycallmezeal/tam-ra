@@ -1,6 +1,7 @@
 library(tidyverse)
 library(factoextra)
 library(lmerTest)
+library(cluster)
 
 df_raw <- read.csv(file.choose(), header=T) # select transformed_data.csv
 
@@ -155,3 +156,16 @@ summary(
       filter(TAM == "PROG")
   )
 )
+
+# CLUSTERS?
+
+df_clustering = df_wide %>%
+  select(!c(AGE, GENDER, REGION, NORTHWEST, NORTHWEST_DIALECT)) %>%
+  column_to_rownames(var="RESPONDENT_ID") %>%
+  na.omit()
+
+set.seed(123)
+fviz_nbclust(df_clustering, kmeans, method = "wss")
+fviz_nbclust(df_clustering, kmeans, method = "silhouette")
+fviz_gap_stat(clusGap(df_clustering, FUN = kmeans, nstart = 25,
+                      K.max = 10, B = 50))
