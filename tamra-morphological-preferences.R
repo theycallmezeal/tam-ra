@@ -1,5 +1,6 @@
 library(tidyverse)
 library(factoextra)
+options(digits=7)
 
 df_raw <- read.csv(file.choose(), header=T) # select transformed_data.csv
 
@@ -110,3 +111,20 @@ df_improvements %>%
   pivot_wider(names_from="FRAME", values_from="IMPROVEMENT") %>%
   filter(INDDP > 0) %>%
   summary()
+
+# PERIPHRASTIC
+
+df_improvements_p = df_wide %>%
+  mutate(INDfinal = PROGpINDfinal - pmax(PROGraINDfinal, PROG0INDfinal)) %>%
+  mutate(INDDP = PROGpINDDP - pmax(PROGraINDDP, PROG0INDfinal)) %>%
+  mutate(INDngo = PROGpINDngo - pmax(PROGraINDngo, PROG0INDfinal)) %>%
+  mutate(INDko = PROGpINDko - pmax(PROGraINDko, PROG0INDfinal)) %>%
+  mutate(NEG = PROGpNEG - pmax(PROGraNEG, PROG0NEG)) %>%
+  mutate(REL = PROGpREL - pmax(PROGraREL, PROG0REL)) %>%
+  mutate(PART = PROGpPART - pmax(PROGraPART, PROG0PART)) %>%
+  select(-contains(c("0", "ra", "PROGp"), ignore.case=FALSE))
+  # pivot_longer(!all_of(c("RESPONDENT_ID", "AGE", "GENDER", "REGION",
+  #                      "NORTHWEST", "NORTHWEST_DIALECT")),
+   #            names_to="CONDITION", values_to="IMPROVEMENT")
+
+summary(df_improvements_p)

@@ -81,6 +81,13 @@ df_improvements = df_wide %>%
   mutate(FUTNEG = FUTraNEG - FUT0NEG) %>%
   mutate(FUTREL = FUTraREL - FUT0REL) %>%
   mutate(FUTPART = FUTraPART - FUT0PART) %>%
+  mutate(PERIPHRASTICINDDP = PROGpINDDP - pmax(PROGraINDDP, PROG0INDDP)) %>%
+  mutate(PERIPHRASTICINDfinal = PROGpINDfinal - pmax(PROGraINDfinal, PROG0INDfinal)) %>%
+  mutate(PERIPHRASTICINDngo = PROGpINDngo - pmax(PROGraINDngo, PROG0INDngo)) %>%
+  mutate(PERIPHRASTICINDko = PROGpINDko - pmax(PROGraINDko, PROG0INDko)) %>%
+  mutate(PERIPHRASTICNEG = PROGpNEG - pmax(PROGraNEG, PROG0NEG)) %>%
+  mutate(PERIPHRASTICREL = PROGpREL - pmax(PROGraREL, PROG0REL)) %>%
+  mutate(PERIPHRASTICPART = PROGpPART - pmax(PROGraPART, PROG0PART)) %>%
   select(-contains(c("0", "ra", "PROGp"), ignore.case=FALSE)) %>%
   pivot_longer(!all_of(c("RESPONDENT_ID", "AGE", "GENDER", "REGION",
                          "NORTHWEST", "NORTHWEST_DIALECT")),
@@ -89,6 +96,7 @@ df_improvements = df_wide %>%
 df_improvements$TAM <- "HAB"
 df_improvements$TAM[grepl("PROG", df_improvements$CONDITION)] <- "PROG"
 df_improvements$TAM[grepl("FUT", df_improvements$CONDITION)] <- "FUT"
+df_improvements$TAM[grepl("PERIPHRASTIC", df_improvements$CONDITION)] <- "PERIPHRASTIC"
 
 df_improvements$FRAME <- "INDDP"
 df_improvements$FRAME[grepl("INDfinal", df_improvements$CONDITION)] <- "INDfinal"
@@ -161,11 +169,11 @@ summary(
 # PERIPHRASTIC
 summary(
   lmer(
-    SCALED_WOULD_YOU_SAY_THIS
+    IMPROVEMENT
     ~ AGE * GENDER * NORTHWEST
-    + MORPHEME + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(TAM == "PROG")
+    + FRAME + (1 | RESPONDENT_ID),
+    data=df_improvements %>%
+      filter(TAM == "PERIPHRASTIC")
   )
 )
 
