@@ -122,15 +122,27 @@ summary(
   )
 )
 
+# MEANING
+
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST_DIALECT
+    + MORPHEME + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(TAM %in% c("PROG", "FUT"), FRAME == "INDfinal")
+  )
+)
+
 # NEGATION, RELATIVIZATION
 
 summary(
   lmer(
     IMPROVEMENT
     ~ AGE * GENDER * NORTHWEST
-    + (1 | RESPONDENT_ID),
+    + TAM + FRAME + (1 | RESPONDENT_ID),
     data=df_improvements %>%
-      filter(FRAME %in% c("NEG", "REL"))
+      filter(FRAME %in% c("NEG", "REL"), TAM %in% c("PROG", "FUT"))
     )
 )
 
@@ -140,9 +152,9 @@ summary(
   lmer(
     IMPROVEMENT
     ~ AGE * GENDER * NORTHWEST
-    + (1 | RESPONDENT_ID),
+    + TAM + (1 | RESPONDENT_ID),
     data=df_improvements %>%
-      filter(FRAME %in% c("PART"))
+      filter(FRAME %in% c("PART"), TAM %in% c("PROG", "FUT"))
   )
 )
 

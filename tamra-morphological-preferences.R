@@ -95,8 +95,18 @@ for (xTAM in c("HAB", "PROG", "FUT")) {
               round(digits = 2)))
   }
 }
+
+
 df_improvements %>%
-  filter(TAM=="HAB", FRAME=="INDDP") %>%
-  pull(IMPROVEMENT) %>%
-  mean() %>%
-  round(digits = 2)
+  filter(TAM=="PROG") %>%
+  select(RESPONDENT_ID, FRAME, IMPROVEMENT) %>%
+  pivot_wider(names_from="FRAME", values_from="IMPROVEMENT") %>%
+  filter(INDDP > 0) %>%
+  summary()
+
+df_improvements %>%
+  filter(TAM=="FUT") %>%
+  select(RESPONDENT_ID, FRAME, IMPROVEMENT) %>%
+  pivot_wider(names_from="FRAME", values_from="IMPROVEMENT") %>%
+  filter(INDDP > 0) %>%
+  summary()
