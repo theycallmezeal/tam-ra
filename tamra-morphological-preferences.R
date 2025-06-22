@@ -1,7 +1,5 @@
 library(tidyverse)
 library(factoextra)
-library(lmerTest)
-library(cluster)
 
 df_raw <- read.csv(file.choose(), header=T) # select transformed_data.csv
 
@@ -14,21 +12,11 @@ df_raw$NORTHWEST_DIALECT <- FALSE
 df_raw$NORTHWEST_DIALECT[df_raw$IKIGOYI] <- TRUE
 df_raw$NORTHWEST_DIALECT[df_raw$IKIRERA] <- TRUE
 
-# scale responses
-
-df_raw = df_raw %>%
-  group_by(RESPONDENT_ID) %>%
-  mutate(SCALED_WOULD_YOU_SAY_THIS = scale(WOULD_YOU_SAY_THIS))
-
-# scaled responses should not get higher or lower with age
-ggplot(df_raw, aes(AGE, WOULD_YOU_SAY_THIS))+geom_jitter()+geom_smooth(method="lm")
-ggplot(df_raw, aes(AGE, SCALED_WOULD_YOU_SAY_THIS))+geom_jitter()+geom_smooth(method="lm")
-
 df_wide = df_raw %>%
   pivot_wider(id_cols=c("RESPONDENT_ID", "AGE", "GENDER", "REGION",
                         "NORTHWEST", "NORTHWEST_DIALECT"),
               names_from="CONDITION_NAME",
-              values_from="SCALED_WOULD_YOU_SAY_THIS") %>%
+              values_from="WOULD_YOU_SAY_THIS") %>%
   mutate(HAB0INDngo = (HAB0INDngo1 + HAB0INDngo2) / 2) %>%
   mutate(HABraINDngo = (HABraINDngo1 + HABraINDngo2) / 2) %>%
   mutate(PROG0INDDP = (PROG0INDDP1 + PROG0INDDP2) / 2) %>%
@@ -98,74 +86,17 @@ df_improvements$FRAME[grepl("NEG", df_improvements$CONDITION)] <- "NEG"
 df_improvements$FRAME[grepl("REL", df_improvements$CONDITION)] <- "REL"
 df_improvements$FRAME[grepl("PART", df_improvements$CONDITION)] <- "PART"
 
-# EVERYTHING
-summary(
-  lmer(
-    IMPROVEMENT
-    ~ AGE * GENDER * NORTHWEST
-    + TAM + FRAME + (1 | RESPONDENT_ID),
-    data=df_improvements
-  )
-)
-
-
-# NGO
-
-# too few observations to use improvements
-summary(
-  lmer(
-    SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST_DIALECT
-    + MORPHEME + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(CONDITION_NAME %in% c("HAB0INDngo1", "HAB0INDngo2", "HABraINDngo1", "HABraINDngo2"))
-  )
-)
-
-# NEGATION, RELATIVIZATION
-
-summary(
-  lmer(
-    IMPROVEMENT
-    ~ AGE * GENDER * NORTHWEST
-    + (1 | RESPONDENT_ID),
-    data=df_improvements %>%
-      filter(FRAME %in% c("NEG", "REL"))
-    )
-)
-
-# PARTICIPIAL
-
-summary(
-  lmer(
-    IMPROVEMENT
-    ~ AGE * GENDER * NORTHWEST
-    + (1 | RESPONDENT_ID),
-    data=df_improvements %>%
-      filter(FRAME %in% c("PART"))
-  )
-)
-
-# PERIPHRASTIC
-summary(
-  lmer(
-    SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST
-    + MORPHEME + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(TAM == "PROG")
-  )
-)
-
-# CLUSTERS?
-
-df_clustering = df_wide %>%
-  select(!c(AGE, GENDER, REGION, NORTHWEST, NORTHWEST_DIALECT)) %>%
-  column_to_rownames(var="RESPONDENT_ID") %>%
-  na.omit()
-
-set.seed(123)
-fviz_nbclust(df_clustering, kmeans, method = "wss")
-fviz_nbclust(df_clustering, kmeans, method = "silhouette")
-fviz_gap_stat(clusGap(df_clustering, FUN = kmeans, nstart = 25,
-                      K.max = 10, B = 50))
+for (xTAM in c("HAB", "PROG", "FUT")) {
+  for (xFRAME in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
+    print(c(xTAM, xFRAME, df_improvements %>%
+              filter(TAM==xTAM, FRAME==xFRAME) %>%
+              pull(IMPROVEMENT) %>%
+              mean() %>%
+              round(digits = 2)))
+  }
+}
+df_improvements %>%
+  filter(TAM=="HAB", FRAME=="INDDP") %>%
+  pull(IMPROVEMENT) %>%
+  mean() %>%
+  round(digits = 2)
