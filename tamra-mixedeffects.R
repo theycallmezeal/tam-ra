@@ -10,9 +10,10 @@ df_raw$NORTHWEST <- "Elsewhere"
 df_raw$NORTHWEST[df_raw$REGION%in%c("Burera", "Musanze", "Rulindo", "Gakenke",
                                     "Rubavu")] <- "Northwest"
 
-df_raw$NORTHWEST_DIALECT <- FALSE
-df_raw$NORTHWEST_DIALECT[df_raw$IKIGOYI] <- TRUE
-df_raw$NORTHWEST_DIALECT[df_raw$IKIRERA] <- TRUE
+df_raw$NORTHWEST_DIALECT <- "Elsewhere"
+df_raw$NORTHWEST_DIALECT[df_raw$IKIGOYI] <- "Northwest"
+df_raw$NORTHWEST_DIALECT[df_raw$IKIRERA] <- "Northwest"
+df_raw$NORTHWEST_DIALECT <- as.factor(df_raw$NORTHWEST_DIALECT)
 
 # scale responses
 
@@ -97,6 +98,7 @@ df_improvements$TAM <- "HAB"
 df_improvements$TAM[grepl("PROG", df_improvements$CONDITION)] <- "PROG"
 df_improvements$TAM[grepl("FUT", df_improvements$CONDITION)] <- "FUT"
 df_improvements$TAM[grepl("PERIPHRASTIC", df_improvements$CONDITION)] <- "PERIPHRASTIC"
+df_improvements$TAM <- as.factor(df_improvements$TAM)
 
 df_improvements$FRAME <- "INDDP"
 df_improvements$FRAME[grepl("INDfinal", df_improvements$CONDITION)] <- "INDfinal"
@@ -123,24 +125,37 @@ summary(
 summary(
   lmer(
     SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST_DIALECT
-    + MORPHEME + (1 | RESPONDENT_ID),
+    ~ AGE * GENDER * NORTHWEST_DIALECT + (1 | RESPONDENT_ID),
     data=df_raw %>%
-      filter(CONDITION_NAME %in% c("HAB0INDngo1", "HAB0INDngo2", "HABraINDngo1", "HABraINDngo2"))
+      filter(CONDITION_NAME %in% c("HAB0INDngo1", "HAB0INDngo2"))
   )
 )
+
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST_DIALECT + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(CONDITION_NAME %in% c("HABraINDngo1", "HABraINDngo2"))
+  )
+)
+
+# There were no effects of age, gender, or dialect on 0 usage.
+
+# However, there was a marginal main effect of gender on ra- usage such that women rated ra- higher, but this effect was attentuated by increased age.
 
 # MEANING
 
 summary(
   lmer(
     SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST_DIALECT
-    + MORPHEME + (1 | RESPONDENT_ID),
+    ~ AGE * TAM * MORPHEME + GENDER * TAM * MORPHEME + NORTHWEST_DIALECT * TAM * MORPHEME + (1 | RESPONDENT_ID),
     data=df_raw %>%
       filter(TAM %in% c("PROG", "FUT"), FRAME == "INDfinal")
   )
 )
+
+# No effects of age, gender, or dialect were found to predict {variable} individually or in interactions.
 
 # NEGATION, RELATIVIZATION
 
@@ -154,17 +169,34 @@ summary(
     )
 )
 
+# A significant main effect of age was found such that younger people showed stronger preference for ra-.
+# Another significant main effect of gender was found such that women showed stronger preference for ra-.
+# There was an interaction between age and gender such that the effect of gender was attenuated with increasing age.
+
+# As age increases, the effect of women preferring ra- becomes less, because the estimate for AGE:GENDERmale is the opposite of AGE and GENDERmale.
+
 # PARTICIPIAL
 
 summary(
   lmer(
     IMPROVEMENT
-    ~ AGE * GENDER * NORTHWEST
-    + TAM + (1 | RESPONDENT_ID),
+    ~ AGE * GENDER * NORTHWEST * TAM + (1 | RESPONDENT_ID),
     data=df_improvements %>%
       filter(FRAME %in% c("PART"), TAM %in% c("PROG", "FUT"))
   )
 )
+
+summary(
+  lmer(
+    IMPROVEMENT
+    ~ AGE * GENDER * NORTHWEST * relevel(TAM, "PROG") + (1 | RESPONDENT_ID),
+    data=df_improvements %>%
+      filter(FRAME %in% c("PART"), TAM %in% c("PROG", "FUT"))
+  )
+)
+
+# A significant interaction between gender and region was found such that men in the Northwest showed greater preference for ra- than the other respondents.
+# However, a significant interaction between age, gender, and region was found such that the above effect was attentuated by increasing age.
 
 # PERIPHRASTIC
 summary(
