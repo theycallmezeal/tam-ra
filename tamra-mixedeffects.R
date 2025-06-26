@@ -125,6 +125,24 @@ summary(
 summary(
   lmer(
     SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(CONDITION_NAME %in% c("HAB0INDngo1", "HAB0INDngo2"))
+  )
+)
+
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(CONDITION_NAME %in% c("HABraINDngo1", "HABraINDngo2"))
+  )
+)
+
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
     ~ AGE * GENDER * NORTHWEST_DIALECT + (1 | RESPONDENT_ID),
     data=df_raw %>%
       filter(CONDITION_NAME %in% c("HAB0INDngo1", "HAB0INDngo2"))
@@ -203,6 +221,16 @@ summary(
   lmer(
     IMPROVEMENT
     ~ AGE * GENDER * NORTHWEST
+    + FRAME + (1 | RESPONDENT_ID),
+    data=df_improvements %>%
+      filter(TAM == "PERIPHRASTIC")
+  )
+)
+
+summary(
+  lmer(
+    IMPROVEMENT
+    ~ AGE * GENDER * NORTHWEST_DIALECT
     + FRAME + (1 | RESPONDENT_ID),
     data=df_improvements %>%
       filter(TAM == "PERIPHRASTIC")
