@@ -112,10 +112,43 @@ mps <- function(df, values_from) {
 df_mps = mps(df_raw, "WOULD_YOU_SAY_THIS")
 df_mps_scaled = mps(df_raw, "SCALED_WOULD_YOU_SAY_THIS")
 
+df_mps_scaled$GENDERREGION <- "Other"
+df_mps_scaled$GENDERREGION[df_mps_scaled$GENDER == "male" & df_mps_scaled$NORTHWEST == "Northwest"] <- "Northwest male"
+
 # negation, relativization, participials
 
-df_mps
+df_mps_scaled %>%
+  filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL")) %>%
+  ggplot(aes(AGE, IMPROVEMENT, color=GENDER))+facet_wrap(~factor(FRAME, levels=c("NEG", "REL", "PART")), labeller=as_labeller(c(`NEG`="negated", `REL`="relativized")))+geom_jitter()+geom_smooth(method="lm", se=FALSE)+ylab("PREFERENCE FOR ra-")
 
-df_mps %>%
+
+df_mps_scaled %>%
+  filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("PART")) %>%
+  ggplot(aes(AGE, IMPROVEMENT, color=GENDER))+facet_wrap(~factor(FRAME, levels=c("NEG", "REL", "PART")), labeller=as_labeller(c(`NEG`="negated", `REL`="relativized")))+geom_jitter()+geom_smooth(method="lm", se=FALSE)+ylab("PREFERENCE FOR ra-")
+
+# mps averages
+df_mps_scaled %>%
   filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART")) %>%
-  ggplot(aes(AGE, IMPROVEMENT, color=GENDER))+facet_wrap(~FRAME)+geom_jitter()+geom_smooth(method="lm")
+  pull(IMPROVEMENT) %>% mean()
+
+df_mps_scaled %>%
+  filter(TAM=="HAB", FRAME=="INDngo") %>% pull(IMPROVEMENT) %>% mean()
+
+per = widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+                         mutate(INDfinal = PROGpINDfinal - pmax(PROGraINDfinal, PROG0INDfinal)) %>%
+                         mutate(INDDP = PROGpINDDP - pmax(PROGraINDDP, PROG0INDfinal)) %>%
+                         mutate(INDngo = PROGpINDngo - pmax(PROGraINDngo, PROG0INDfinal)) %>%
+                         mutate(INDko = PROGpINDko - pmax(PROGraINDko, PROG0INDfinal)) %>%
+                         mutate(NEG = PROGpNEG - pmax(PROGraNEG, PROG0NEG)) %>%
+                         mutate(REL = PROGpREL - pmax(PROGraREL, PROG0REL)) %>%
+                         mutate(PART = PROGpPART - pmax(PROGraPART, PROG0PART)) %>%
+                         select(-contains(c("0", "ra", "PROGp"), ignore.case=FALSE))
+
+perresults = c(per$INDfinal, per$INDDP, per$INDngo, per$INDko, per$NEG, per$REL, per$PART)
+mean(perresults)
+
+df_mps_scaled %>%
+  filter(TAM=="HAB", FRAME=="INDfinal") %>% pull(IMPROVEMENT) %>% mean()
+
+df_mps_scaled %>%
+  filter(TAM=="HAB", FRAME=="INDDP") %>% pull(IMPROVEMENT) %>% mean()
