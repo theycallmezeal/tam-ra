@@ -119,36 +119,15 @@ df_mps_scaled$GENDERREGION[df_mps_scaled$GENDER == "male" & df_mps_scaled$NORTHW
 
 df_mps_scaled %>%
   filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL")) %>%
-  ggplot(aes(AGE, IMPROVEMENT, color=GENDER))+facet_wrap(~factor(FRAME, levels=c("NEG", "REL", "PART")), labeller=as_labeller(c(`NEG`="negated", `REL`="relativized")))+geom_jitter()+geom_smooth(method="lm", se=FALSE)+ylab("PREFERENCE FOR ra-")
+  ggplot(aes(AGE, IMPROVEMENT, color=GENDER))+facet_wrap(~factor(FRAME, levels=c("NEG", "REL", "PART")), labeller=as_labeller(c(`NEG`="negated", `REL`="relativized")))+geom_jitter()+geom_smooth(method="lm", se=FALSE)+ylab("Preference for ra-")+xlab("Age")+labs(color="Gender")
 
 
 df_mps_scaled %>%
   filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("PART")) %>%
-  ggplot(aes(AGE, IMPROVEMENT, color=GENDER))+facet_wrap(~factor(FRAME, levels=c("NEG", "REL", "PART")), labeller=as_labeller(c(`NEG`="negated", `REL`="relativized")))+geom_jitter()+geom_smooth(method="lm", se=FALSE)+ylab("PREFERENCE FOR ra-")
+  ggplot(aes(AGE, IMPROVEMENT, color=GENDERREGION))+facet_wrap(~factor(FRAME, levels=c("NEG", "REL", "PART")), labeller=as_labeller(c(`PART`="participial", `REL`="relativized")))+geom_jitter()+geom_smooth(method="lm", se=FALSE)+ylab("Preference for ra-")+xlab("Age")+labs(color="Gender and region")
 
-# mps averages
-df_mps_scaled %>%
-  filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART")) %>%
-  pull(IMPROVEMENT) %>% mean()
+# ngo
 
 df_mps_scaled %>%
-  filter(TAM=="HAB", FRAME=="INDngo") %>% pull(IMPROVEMENT) %>% mean()
-
-per = widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
-                         mutate(INDfinal = PROGpINDfinal - pmax(PROGraINDfinal, PROG0INDfinal)) %>%
-                         mutate(INDDP = PROGpINDDP - pmax(PROGraINDDP, PROG0INDfinal)) %>%
-                         mutate(INDngo = PROGpINDngo - pmax(PROGraINDngo, PROG0INDfinal)) %>%
-                         mutate(INDko = PROGpINDko - pmax(PROGraINDko, PROG0INDfinal)) %>%
-                         mutate(NEG = PROGpNEG - pmax(PROGraNEG, PROG0NEG)) %>%
-                         mutate(REL = PROGpREL - pmax(PROGraREL, PROG0REL)) %>%
-                         mutate(PART = PROGpPART - pmax(PROGraPART, PROG0PART)) %>%
-                         select(-contains(c("0", "ra", "PROGp"), ignore.case=FALSE))
-
-perresults = c(per$INDfinal, per$INDDP, per$INDngo, per$INDko, per$NEG, per$REL, per$PART)
-mean(perresults)
-
-df_mps_scaled %>%
-  filter(TAM=="HAB", FRAME=="INDfinal") %>% pull(IMPROVEMENT) %>% mean()
-
-df_mps_scaled %>%
-  filter(TAM=="HAB", FRAME=="INDDP") %>% pull(IMPROVEMENT) %>% mean()
+  filter(TAM %in% c("HAB"), FRAME %in% c("INDngo")) %>%
+  ggplot(aes(AGE, IMPROVEMENT, color=GENDER))+geom_jitter()+geom_smooth(method="lm", se=FALSE)+ylab("Preference for ra-")+xlab("Age")+labs(color="Gender and region")
