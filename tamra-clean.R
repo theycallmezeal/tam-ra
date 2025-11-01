@@ -225,16 +225,17 @@ summary(
   lmer(
     IMPROVEMENT
     ~ AGE * GENDER * NORTHWEST * TAM + (1 | RESPONDENT_ID),
-    data=df_improvements %>%
+    data=df_mps_scaled %>%
       filter(FRAME %in% c("PART"), TAM %in% c("PROG", "FUT"))
   )
 )
 
+# TODO doesnt work
 summary(
   lmer(
     IMPROVEMENT
     ~ AGE * GENDER * NORTHWEST * relevel(TAM, "PROG") + (1 | RESPONDENT_ID),
-    data=df_improvements %>%
+    data=df_mps_scaled %>%
       filter(FRAME %in% c("PART"), TAM %in% c("PROG", "FUT"))
   )
 )
