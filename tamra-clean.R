@@ -132,13 +132,6 @@ for (tam in c("HAB", "PROG", "FUT")) {
   }
 }
 
-# ngo graph
-df_raw %>%
-  select(CONDITION_NAME, WOULD_YOU_SAY_THIS, RESPONDENT_ID) %>%
-  filter(CONDITION_NAME %in%c("HABraINDngo1", "HAB0INDngo1")) %>%
-  pivot_wider(names_from="CONDITION_NAME", values_from="WOULD_YOU_SAY_THIS") %>%
-  ggplot(aes(HABraINDngo1,HAB0INDngo1))+geom_jitter()
-
 # ngo models
 # too few observations to use improvements
 summary(
@@ -176,13 +169,6 @@ summary(
       filter(CONDITION_NAME %in% c("HABraINDngo1", "HABraINDngo2"))
   )
 )
-
-# meaning graph
-df_raw %>%
-  select(CONDITION_NAME, WOULD_YOU_SAY_THIS, RESPONDENT_ID) %>%
-  filter(CONDITION_NAME %in%c("PROGraINDfinal1", "FUTraINDfinal1")) %>%
-  pivot_wider(names_from="CONDITION_NAME", values_from="WOULD_YOU_SAY_THIS") %>%
-  ggplot(aes(PROGraINDfinal1,FUTraINDfinal1))+geom_jitter()
 
 # meaning model
 summary(
