@@ -129,7 +129,6 @@ df_mps_scaled %>%
     ~factor(FRAME, levels=c("NEG", "REL", "PART")),
     labeller=as_labeller(c(`NEG`="negated", `REL`="relativized")))+
   geom_jitter()+geom_smooth(method="lm", se=FALSE)+
-  geom_smooth(method="lm", aes=(group=1), color="black", se=FALSE)+
   ylab("Preference for ra-")+xlab("Age")+labs(color="Gender")
 
 
@@ -140,7 +139,6 @@ df_mps_scaled %>%
     ~factor(FRAME, levels=c("NEG", "REL", "PART")),
     labeller=as_labeller(c(`PART`="participial")))+
   geom_jitter()+geom_smooth(method="lm", se=FALSE)+
-  geom_smooth(method="lm", aes=(group=1), color="black", se=FALSE)+
   ylab("Preference for ra-")+xlab("Age")+labs(color="Gender and region")
 
 # ngo
