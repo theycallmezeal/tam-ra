@@ -112,6 +112,20 @@ mps <- function(df, values_from) {
 df_mps = mps(df_raw, "WOULD_YOU_SAY_THIS")
 df_mps_scaled = mps(df_raw, "SCALED_WOULD_YOU_SAY_THIS")
 
+# tag respondents based on whether they accept prog or fut
+
+accepts_prog = df_mps_scaled %>%
+  filter(TAM == "PROG", FRAME == "INDDP", IMPROVEMENT > 0) %>%
+  pull(RESPONDENT_ID)
+df_mps_scaled$ACCEPTS_PROG <- "False"
+df_mps_scaled$ACCEPTS_PROG[df_mps_scaled$RESPONDENT_ID %in% accepts_prog] <- "True"
+  
+accepts_fut = df_mps_scaled %>%
+  filter(TAM == "FUT", FRAME == "INDDP", IMPROVEMENT > 0) %>%
+  pull(RESPONDENT_ID)
+df_mps_scaled$ACCEPTS_FUT <- "False"
+df_mps_scaled$ACCEPTS_FUT[df_mps_scaled$RESPONDENT_ID %in% accepts_prog] <- "True"
+
 # overall responses
 for (tammorpheme in c("HAB0", "HABra", "PROG0", "PROGra", "PROGp", "FUT0", "FUTra")) {
   for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
