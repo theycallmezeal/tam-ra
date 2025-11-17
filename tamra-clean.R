@@ -124,7 +124,7 @@ accepts_fut = df_mps_scaled %>%
   filter(TAM == "FUT", FRAME == "INDDP", IMPROVEMENT > 0) %>%
   pull(RESPONDENT_ID)
 df_mps_scaled$ACCEPTS_FUT <- "False"
-df_mps_scaled$ACCEPTS_FUT[df_mps_scaled$RESPONDENT_ID %in% accepts_prog] <- "True"
+df_mps_scaled$ACCEPTS_FUT[df_mps_scaled$RESPONDENT_ID %in% accepts_fut] <- "True"
 
 # overall responses
 for (tammorpheme in c("HAB0", "HABra", "PROG0", "PROGra", "PROGp", "FUT0", "FUTra")) {
@@ -209,24 +209,34 @@ df_mps %>%
   filter(INDDP > 0) %>%
   summary()
 
-# negation, relativization model
+# negation, relativization, participial models
 summary(
   lmer(
     IMPROVEMENT
-    ~ AGE * GENDER * NORTHWEST
-    + TAM + FRAME + (1 | RESPONDENT_ID),
+    ~ AGE * GENDER * NORTHWEST + TAM + (1 | RESPONDENT_ID),
     data=df_mps_scaled %>%
-      filter(FRAME %in% c("NEG", "REL"), TAM %in% c("PROG", "FUT"))
+      filter(FRAME %in% c("NEG"),
+             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")))
   )
 )
 
-# participial models
 summary(
   lmer(
     IMPROVEMENT
-    ~ AGE * GENDER * NORTHWEST * TAM + (1 | RESPONDENT_ID),
+    ~ AGE * GENDER * NORTHWEST + TAM + (1 | RESPONDENT_ID),
     data=df_mps_scaled %>%
-      filter(FRAME %in% c("PART"), TAM %in% c("PROG", "FUT"))
+      filter(FRAME %in% c("REL"),
+             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")))
+  )
+)
+
+summary(
+  lmer(
+    IMPROVEMENT
+    ~ AGE * GENDER * NORTHWEST + TAM + (1 | RESPONDENT_ID),
+    data=df_mps_scaled %>%
+      filter(FRAME %in% c("PART"),
+             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")))
   )
 )
 
