@@ -120,13 +120,13 @@ df_mps_scaled$GENDERREGION <- "Other"
 df_mps_scaled$GENDERREGION[df_mps_scaled$GENDER == "male" & df_mps_scaled$NORTHWEST == "Northwest"] <- "Northwest male"
 
 accepts_prog = df_raw %>%
-  filter(TAM == "PROG", FRAME == "INDfinal", WOULD_YOU_SAY_THIS > 4) %>%
+  filter(TAM == "PROG", FRAME == "INDfinal", MORPHEME == "ra", WOULD_YOU_SAY_THIS >= 4) %>%
   pull(RESPONDENT_ID)
 df_mps_scaled$ACCEPTS_PROG <- "False"
 df_mps_scaled$ACCEPTS_PROG[df_mps_scaled$RESPONDENT_ID %in% accepts_prog] <- "True"
 
-accepts_fut = df_mps_scaled %>%
-  filter(TAM == "FUT", FRAME == "INDfinal", WOULD_YOU_SAY_THIS > 4) %>%
+accepts_fut = df_raw %>%
+  filter(TAM == "FUT", FRAME == "INDfinal", MORPHEME == "ra", WOULD_YOU_SAY_THIS >= 4) %>%
   pull(RESPONDENT_ID)
 df_mps_scaled$ACCEPTS_FUT <- "False"
 df_mps_scaled$ACCEPTS_FUT[df_mps_scaled$RESPONDENT_ID %in% accepts_fut] <- "True"
@@ -134,23 +134,13 @@ df_mps_scaled$ACCEPTS_FUT[df_mps_scaled$RESPONDENT_ID %in% accepts_fut] <- "True
 # neg, rel, prog
 
 df_mps_scaled %>%
-  filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL")) %>%
+  filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART")) %>%
   ggplot(aes(AGE, IMPROVEMENT, color=GENDER))+
   facet_wrap(
     ~factor(FRAME, levels=c("NEG", "REL", "PART")),
-    labeller=as_labeller(c(`NEG`="negated", `REL`="relativized")))+
+    labeller=as_labeller(c(`NEG`="negated", `REL`="relativized", `PART`="participial")))+
   geom_jitter()+geom_smooth(method="lm", se=FALSE)+
   ylab("Preference for ra-")+xlab("Age")+labs(color="Gender")
-
-
-df_mps_scaled %>%
-  filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("PART")) %>%
-  ggplot(aes(AGE, IMPROVEMENT, color=GENDERREGION))+
-  facet_wrap(
-    ~factor(FRAME, levels=c("NEG", "REL", "PART")),
-    labeller=as_labeller(c(`PART`="participial")))+
-  geom_jitter()+geom_smooth(method="lm", se=FALSE)+
-  ylab("Preference for ra-")+xlab("Age")+labs(color="Gender and region")
 
 # ngo
 
@@ -166,13 +156,9 @@ df_raw %>%
 # prog vs fut
 df_raw %>%
   select(CONDITION_NAME, WOULD_YOU_SAY_THIS, RESPONDENT_ID) %>%
-  filter(CONDITION_NAME %in%c("PROGraINDfinal1", "FUTraINDfinal1")) %>%
+  filter(CONDITION_NAME %in%c("PROGraINDfinal1", "FUTraINDfinal1", "PROGraINDfinal2", "FUTraINDfinal2")) %>%
   pivot_wider(names_from="CONDITION_NAME", values_from="WOULD_YOU_SAY_THIS") %>%
-  ggplot(aes(PROGraINDfinal1,FUTraINDfinal1))+geom_jitter()
-
-df_raw %>%
-  select(CONDITION_NAME, WOULD_YOU_SAY_THIS, RESPONDENT_ID) %>%
-  filter(CONDITION_NAME %in%c("HABraINDngo1", "HAB0INDngo1")) %>%
-  pivot_wider(names_from="CONDITION_NAME", values_from="WOULD_YOU_SAY_THIS") %>%
-  filter(HABraINDngo1 < 4, HAB0INDngo1 < 4) %>%
-  nrow()
+  mutate(PROG_AVG = mean(PROGraINDfinal1, PROGraINDfinal2)) %>%
+  mutate(FUT_AVG = mean(FUTraINDfinal1, FUTraINDfinal2)) %>%
+  ggplot(aes(PROG_AVG, FUT_AVG))+geom_jitter()+
+  xlab("progressive")+ylab("near-future")
