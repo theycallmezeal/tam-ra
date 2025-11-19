@@ -114,14 +114,14 @@ df_mps_scaled = mps(df_raw, "SCALED_WOULD_YOU_SAY_THIS")
 
 # tag respondents based on whether they accept prog or fut
 
-accepts_prog = df_mps_scaled %>%
-  filter(TAM == "PROG", FRAME == "INDDP", IMPROVEMENT > 0) %>%
+accepts_prog = df_raw %>%
+  filter(TAM == "PROG", FRAME == "INDfinal", WOULD_YOU_SAY_THIS >= 4) %>%
   pull(RESPONDENT_ID)
 df_mps_scaled$ACCEPTS_PROG <- "False"
 df_mps_scaled$ACCEPTS_PROG[df_mps_scaled$RESPONDENT_ID %in% accepts_prog] <- "True"
   
-accepts_fut = df_mps_scaled %>%
-  filter(TAM == "FUT", FRAME == "INDDP", IMPROVEMENT > 0) %>%
+accepts_fut = df_raw %>%
+  filter(TAM == "FUT", FRAME == "INDfinal", WOULD_YOU_SAY_THIS >= 4) %>%
   pull(RESPONDENT_ID)
 df_mps_scaled$ACCEPTS_FUT <- "False"
 df_mps_scaled$ACCEPTS_FUT[df_mps_scaled$RESPONDENT_ID %in% accepts_fut] <- "True"
@@ -198,15 +198,15 @@ summary(
 df_mps %>%
   filter(TAM=="PROG") %>%
   select(RESPONDENT_ID, FRAME, IMPROVEMENT) %>%
+  filter(RESPONDENT_ID %in% accepts_prog) %>%
   pivot_wider(names_from="FRAME", values_from="IMPROVEMENT") %>%
-  filter(INDDP > 0) %>%
   summary()
 
 df_mps %>%
   filter(TAM=="FUT") %>%
   select(RESPONDENT_ID, FRAME, IMPROVEMENT) %>%
+  filter(RESPONDENT_ID %in% accepts_prog) %>%
   pivot_wider(names_from="FRAME", values_from="IMPROVEMENT") %>%
-  filter(INDDP > 0) %>%
   summary()
 
 # negation, relativization, participial models

@@ -119,6 +119,17 @@ df_mps_scaled = mps(df_raw, "SCALED_WOULD_YOU_SAY_THIS")
 df_mps_scaled$GENDERREGION <- "Other"
 df_mps_scaled$GENDERREGION[df_mps_scaled$GENDER == "male" & df_mps_scaled$NORTHWEST == "Northwest"] <- "Northwest male"
 
+accepts_prog = df_raw %>%
+  filter(TAM == "PROG", FRAME == "INDfinal", WOULD_YOU_SAY_THIS > 4) %>%
+  pull(RESPONDENT_ID)
+df_mps_scaled$ACCEPTS_PROG <- "False"
+df_mps_scaled$ACCEPTS_PROG[df_mps_scaled$RESPONDENT_ID %in% accepts_prog] <- "True"
+
+accepts_fut = df_mps_scaled %>%
+  filter(TAM == "FUT", FRAME == "INDfinal", WOULD_YOU_SAY_THIS > 4) %>%
+  pull(RESPONDENT_ID)
+df_mps_scaled$ACCEPTS_FUT <- "False"
+df_mps_scaled$ACCEPTS_FUT[df_mps_scaled$RESPONDENT_ID %in% accepts_fut] <- "True"
 
 # neg, rel, prog
 
