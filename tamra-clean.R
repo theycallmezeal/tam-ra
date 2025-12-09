@@ -455,3 +455,42 @@ summary(widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
   mutate(REL = PROGpREL - pmax(PROGraREL, PROG0REL)) %>%
   mutate(PART = PROGpPART - pmax(PROGraPART, PROG0PART)) %>%
   select(-contains(c("0", "ra", "PROGp"), ignore.case=FALSE)))
+
+# SANDBOX
+
+# are PROG and FUT comparable?
+
+prog_fut_responses = widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+  filter(RESPONDENT_ID %in% accepts_prog, RESPONDENT_ID %in% accepts_fut) %>%
+  select(starts_with("FUT") | starts_with("PROGra") | starts_with("PROG0")) %>%
+  pivot_longer(names_to = "CONDITION", values_to = "SCORE", cols = !c("RESPONDENT_ID")) %>%
+  mutate(TAMMORPHEME = case_when(
+    startsWith(CONDITION, "FUT0") ~ "FUT0",
+    startsWith(CONDITION, "FUTra") ~ "FUTra",
+    startsWith(CONDITION, "PROG0") ~ "PROG0",
+    startsWith(CONDITION, "PROGra") ~ "PROGra"
+  )) %>%
+  mutate(FRAME = case_when(
+    endsWith(CONDITION, "INDfinal") ~ "INDfinal",
+    endsWith(CONDITION, "INDDP") ~ "INDDP",
+    endsWith(CONDITION, "INDngo") ~ "INDngo",
+    endsWith(CONDITION, "INDko") ~ "INDko",
+    endsWith(CONDITION, "NEG") ~ "NEG",
+    endsWith(CONDITION, "REL") ~ "REL",
+    endsWith(CONDITION, "PART") ~ "PART"
+  )) %>%
+  select(-CONDITION) %>%
+  pivot_wider(names_from = TAMMORPHEME, values_from=SCORE)
+
+grid.arrange(
+prog_fut_responses %>%
+  ggplot(aes(PROGra, FUTra)) + geom_jitter(width=0.1, height=0.1) + geom_smooth(method="lm"),
+
+prog_fut_responses %>%
+  ggplot(aes(PROG0, FUT0)) + geom_jitter(width=0.1, height=0.1) + geom_smooth(method="lm"),
+
+ncol=2
+)
+
+summary(lm(PROGra ~ FUTra, prog_fut_responses))
+summary(lm(PROG0 ~ FUT0, prog_fut_responses))
