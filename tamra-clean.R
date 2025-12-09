@@ -427,8 +427,8 @@ neg_rel_part = rbind(
 neg_rel_part %>%
   pivot_longer(names_to = "TYPE", values_to = "SCORE", cols=c("PART", "REL")) %>%
   ggplot(
-    aes(NEG, SCORE)
-  ) + geom_jitter() + geom_smooth(method="lm") +
+    aes(NEG, SCORE, color=TAM)
+  ) + geom_jitter(width = 0.05, height = 0.05) + geom_smooth(method="lm") +
   facet_wrap(~ factor(TYPE, levels=c("REL", "PART")), labeller=as_labeller(c(`NEG`="negated", `REL`="relativized", `PART`="participial"))) +
   xlab("Scaled score: ra- in negation") + ylab("Scaled score: ra- in other environment")
 
