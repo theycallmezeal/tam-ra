@@ -239,6 +239,36 @@ df_mps %>%
   pivot_wider(names_from="FRAME", values_from="IMPROVEMENT") %>%
   summary()
 
+df_raw %>%
+  filter(TAM=="PROG", MORPHEME=="ra") %>%
+  select(RESPONDENT_ID, FRAME, WOULD_YOU_SAY_THIS, CONDITION_NAME) %>%
+  filter(RESPONDENT_ID %in% accepts_prog)
+
+df_raw %>%
+  filter(TAM=="PROG", MORPHEME=="ra", RESPONDENT_ID %in% accepts_prog)
+
+# average mps for people who accept tam readings
+widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
+  filter(RESPONDENT_ID %in% accepts_prog) %>%
+  select(starts_with("PROG0") | starts_with("PROGra"))  %>%
+  summary()
+
+widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
+  filter(RESPONDENT_ID %in% accepts_fut) %>%
+  select(starts_with("FUT0") | starts_with("FUTra")) %>%
+  summary()
+
+# how many people accept?
+widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
+  filter(RESPONDENT_ID %in% accepts_prog) %>%
+  select(starts_with("PROG0") | starts_with("PROGra"))  %>%
+  sapply(function(x) {sum(x >= 4)})
+
+widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
+  filter(RESPONDENT_ID %in% accepts_fut) %>%
+  select(starts_with("FUT0") | starts_with("FUTra")) %>%
+  sapply(function(x) {sum(x >= 4)})
+
 # SECTION 5.3.6 ACCEPTABILITY OF PROG/FUT ra- IN SYNTACTIC FRAMES
 
 # negation
