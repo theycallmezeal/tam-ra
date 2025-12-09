@@ -1,6 +1,7 @@
 library(tidyverse)
 library(factoextra)
 library(lmerTest)
+library(gridExtra)
 
 df_raw <- read.csv(file.choose(), header=T) # select transformed_data.csv
 
@@ -259,19 +260,49 @@ widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
   summary()
 
 # how many people accept?
-widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
-  filter(RESPONDENT_ID %in% accepts_prog) %>%
-  select(starts_with("PROG0") | starts_with("PROGra"))  %>%
-  sapply(function(x) {sum(x >= 4)})
+for (morpheme in c("ra", "0")) {
+  for (tam in c("PROG", "FUT")) {
+    for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
+      print(c(morpheme, tam, frame, df_raw %>%
+                filter(RESPONDENT_ID %in% if (tam == "PROG") accepts_prog else accepts_fut) %>%
+                filter(MORPHEME == morpheme, FRAME == frame, TAM == tam) %>%
+                filter(WOULD_YOU_SAY_THIS >= 4) %>%
+                select(RESPONDENT_ID) %>%
+                unique() %>%
+                nrow()))
+    }
+  }
+}
 
-widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
-  filter(RESPONDENT_ID %in% accepts_fut) %>%
-  select(starts_with("FUT0") | starts_with("FUTra")) %>%
-  sapply(function(x) {sum(x >= 4)})
 
 # SECTION 5.3.6 ACCEPTABILITY OF PROG/FUT ra- IN SYNTACTIC FRAMES
 
-# negation
+## negation
+### ra
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(FRAME %in% c("NEG"),
+             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
+             MORPHEME == "ra")
+  )
+)
+
+### 0
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(FRAME %in% c("NEG"),
+             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
+             MORPHEME == "0")
+  )
+)
+
+###mps
 summary(
   lmer(
     SCALED_IMPROVEMENT
@@ -282,7 +313,32 @@ summary(
   )
 )
 
-# relativization
+## relativization
+### ra
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(FRAME %in% c("REL"),
+             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
+             MORPHEME == "ra")
+  )
+)
+
+### 0
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(FRAME %in% c("REL"),
+             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
+             MORPHEME == "0")
+  )
+)
+
+###mps
 summary(
   lmer(
     SCALED_IMPROVEMENT
@@ -293,7 +349,32 @@ summary(
   )
 )
 
-# participial
+## participial
+### ra
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(FRAME %in% c("PART"),
+             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
+             MORPHEME == "ra")
+  )
+)
+
+### 0
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(FRAME %in% c("PART"),
+             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
+             MORPHEME == "0")
+  )
+)
+
+###mps
 summary(
   lmer(
     SCALED_IMPROVEMENT
@@ -304,6 +385,7 @@ summary(
   )
 )
 
+# graphs
 df_mps %>%
   filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART")) %>%
   ggplot(aes(AGE, IMPROVEMENT, color=GENDER))+
@@ -311,7 +393,54 @@ df_mps %>%
     ~factor(FRAME, levels=c("NEG", "REL", "PART")),
     labeller=as_labeller(c(`NEG`="negated", `REL`="relativized", `PART`="participial")))+
   geom_jitter()+geom_smooth(method="lm", se=FALSE)+
-  ylab("Preference for ra-")+xlab("Age")+labs(color="Gender")
+  ylab("Scaled preference for ra-")+xlab("Age")+labs(color="Gender")
+
+df_raw %>%
+  filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART"), MORPHEME %in% c("ra", "0")) %>%
+  ggplot(aes(AGE, SCALED_WOULD_YOU_SAY_THIS, color=GENDER))+
+  facet_grid(
+    factor(MORPHEME, levels=c("ra", "0")) ~ factor(FRAME, levels=c("NEG", "REL", "PART")),
+    labeller=as_labeller(c(`NEG`="negated", `REL`="relativized", `PART`="participial", `ra`="ra-", `0`="0")))+
+  geom_jitter()+geom_smooth(method="lm", se=FALSE)+
+  ylab("Scaled preference for morpheme")+xlab("Age")+labs(color="Gender")
+
+# does acceptance of negated ra- imply acceptance of rel / part or vice versa?
+
+neg_rel_part = rbind(
+  widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+    filter(RESPONDENT_ID %in% accepts_prog) %>%
+    select(PROGraNEG, PROGraREL, PROGraPART) %>%
+    rename(NEG = PROGraNEG) %>%
+    rename(REL = PROGraREL) %>%
+    rename(PART = PROGraPART),
+  
+  widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+    filter(RESPONDENT_ID %in% accepts_fut) %>%
+    select(FUTraNEG, FUTraREL, FUTraPART) %>%
+    rename(NEG = FUTraNEG) %>%
+    rename(REL = FUTraREL) %>%
+    rename(PART = FUTraPART)
+)
+
+neg_rel_part %>%
+  pivot_longer(names_to = "TYPE", values_to = "SCORE", cols=c("PART", "REL")) %>%
+  ggplot(
+    aes(NEG, SCORE)
+  ) + geom_jitter() + geom_smooth(method="lm") +
+  facet_wrap(~ factor(TYPE, levels=c("REL", "PART")), labeller=as_labeller(c(`NEG`="negated", `REL`="relativized", `PART`="participial"))) +
+  xlab("Scaled score: ra- in negation") + ylab("Scaled score: ra- in other environment")
+
+summary(
+  lmer(NEG ~ REL + (0 + REL | RESPONDENT_ID),
+       data = neg_rel_part))
+
+summary(
+  lmer(NEG ~ PART + (1 | RESPONDENT_ID),
+       data = neg_rel_part))
+
+summary(
+  lmer(PART ~ REL + (1 | RESPONDENT_ID),
+       data = neg_rel_part)) 
 
 # SECTION 5.3.7 PERIPHRASTICS
 
