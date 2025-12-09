@@ -162,10 +162,10 @@ df_raw %>%
   select(CONDITION_NAME, WOULD_YOU_SAY_THIS, RESPONDENT_ID, GENDER, AGERANGE) %>%
   filter(CONDITION_NAME %in%c("HABraINDngo1", "HAB0INDngo1")) %>%
   pivot_wider(names_from="CONDITION_NAME", values_from="WOULD_YOU_SAY_THIS") %>%
-  ggplot(aes(HABraINDngo1,HAB0INDngo1,colour=AGERANGE,shape=GENDER))+
+  ggplot(aes(HABraINDngo1,HAB0INDngo1,color=AGERANGE,shape=GENDER))+
   scale_shape_manual(values=c(15,16,17,18))+
-  geom_point(position="jitter",size=3)+ylab("Acceptability of ra-less verb")+
-  xlab("Acceptability of verb with ra-")
+  geom_point(position="jitter",size=3)+
+  labs(x="Verb with ra-", y="Verb without ra-", color="Age range", shape="Gender")
 
 # too few observations to use morphological preference scores
 summary(
@@ -213,7 +213,7 @@ df_raw %>%
   mutate(PROG_AVG = mean(PROGraINDfinal1, PROGraINDfinal2)) %>%
   mutate(FUT_AVG = mean(FUTraINDfinal1, FUTraINDfinal2)) %>%
   ggplot(aes(PROG_AVG, FUT_AVG))+geom_jitter()+
-  xlab("progressive")+ylab("near-future")
+  xlab("PROG")+ylab("FUT")
 
 summary(
   lmer(
@@ -386,15 +386,8 @@ summary(
 )
 
 # graphs
-df_mps %>%
-  filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART")) %>%
-  ggplot(aes(AGE, IMPROVEMENT, color=GENDER))+
-  facet_wrap(
-    ~factor(FRAME, levels=c("NEG", "REL", "PART")),
-    labeller=as_labeller(c(`NEG`="negated", `REL`="relativized", `PART`="participial")))+
-  geom_jitter()+geom_smooth(method="lm", se=FALSE)+
-  ylab("Scaled preference for ra-")+xlab("Age")+labs(color="Gender")
 
+# TODO can these be combined?
 df_raw %>%
   filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART"), MORPHEME %in% c("ra", "0")) %>%
   ggplot(aes(AGE, SCALED_WOULD_YOU_SAY_THIS, color=GENDER))+
@@ -402,7 +395,17 @@ df_raw %>%
     factor(MORPHEME, levels=c("ra", "0")) ~ factor(FRAME, levels=c("NEG", "REL", "PART")),
     labeller=as_labeller(c(`NEG`="negated", `REL`="relativized", `PART`="participial", `ra`="ra-", `0`="0")))+
   geom_jitter()+geom_smooth(method="lm", se=FALSE)+
-  ylab("Scaled preference for morpheme")+xlab("Age")+labs(color="Gender")
+  ylab("Preference for morpheme")+xlab("Age")+labs(color="Gender")
+
+df_mps %>%
+  filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART")) %>%
+  ggplot(aes(AGE, IMPROVEMENT, color=GENDER))+
+  facet_wrap(
+    ~factor(FRAME, levels=c("NEG", "REL", "PART")),
+    labeller=as_labeller(c(`NEG`="negated", `REL`="relativized", `PART`="participial")))+
+  geom_jitter()+geom_smooth(method="lm", se=FALSE)+
+  ylab("Preference for ra-")+xlab("Age")+labs(color="Gender")
+
 
 # does acceptance of negated ra- imply acceptance of rel / part or vice versa?
 
@@ -430,7 +433,7 @@ neg_rel_part %>%
     aes(NEG, SCORE, color=TAM)
   ) + geom_jitter(width = 0.05, height = 0.05) + geom_smooth(method="lm") +
   facet_wrap(~ factor(TYPE, levels=c("REL", "PART")), labeller=as_labeller(c(`NEG`="negated", `REL`="relativized", `PART`="participial"))) +
-  xlab("Scaled score: ra- in negation") + ylab("Scaled score: ra- in other environment")
+  xlab("Negation") + ylab("Other environment")
 
 summary(
   lmer(REL ~ NEG * TAM + (1 | RESPONDENT_ID),
@@ -483,13 +486,17 @@ prog_fut_responses = widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
   pivot_wider(names_from = TAMMORPHEME, values_from=SCORE)
 
 grid.arrange(
-prog_fut_responses %>%
-  ggplot(aes(PROGra, FUTra)) + geom_jitter(width=0.1, height=0.1) + geom_smooth(method="lm"),
-
-prog_fut_responses %>%
-  ggplot(aes(PROG0, FUT0)) + geom_jitter(width=0.1, height=0.1) + geom_smooth(method="lm"),
-
-ncol=2
+  prog_fut_responses %>%
+    ggplot(aes(PROGra, FUTra)) + geom_jitter(width=0.1, height=0.1) + geom_smooth(method="lm") +
+    xlab("PROG, verb with ra-") +
+    ylab("FUT, verb with ra-"),
+  
+  prog_fut_responses %>%
+    ggplot(aes(PROG0, FUT0)) + geom_jitter(width=0.1, height=0.1) + geom_smooth(method="lm") +
+    xlab("PROG, verb without ra-") +
+    ylab("FUT, verb without ra-"),
+  
+  ncol=2
 )
 
 summary(lm(PROGra ~ FUTra, prog_fut_responses))
