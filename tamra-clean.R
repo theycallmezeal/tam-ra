@@ -259,7 +259,7 @@ widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
   select(starts_with("FUT0") | starts_with("FUTra")) %>%
   summary()
 
-# how many people accept?
+# how many people accept? PROG accepters, FUT accepters
 for (morpheme in c("ra", "0")) {
   for (tam in c("PROG", "FUT")) {
     for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
