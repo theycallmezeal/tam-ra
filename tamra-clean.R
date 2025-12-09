@@ -16,6 +16,11 @@ df_raw$NORTHWEST_DIALECT[df_raw$IKIGOYI] <- "Northwest"
 df_raw$NORTHWEST_DIALECT[df_raw$IKIRERA] <- "Northwest"
 df_raw$NORTHWEST_DIALECT <- as.factor(df_raw$NORTHWEST_DIALECT)
 
+df_raw$AGERANGE <- "20-29"
+df_raw$AGERANGE[df_raw$AGE >= 30] <- "30-39"
+df_raw$AGERANGE[df_raw$AGE >= 40] <- "40-49"
+df_raw$AGERANGE[df_raw$AGE >= 50] <- "50-59"
+
 # scale responses
 df_raw = df_raw %>%
   group_by(RESPONDENT_ID) %>%
@@ -130,6 +135,7 @@ df_raw$ACCEPTS_FUT[df_raw$RESPONDENT_ID %in% accepts_fut] <- "True"
 df_mps$ACCEPTS_FUT <- "False"
 df_mps$ACCEPTS_FUT[df_mps$RESPONDENT_ID %in% accepts_fut] <- "True"
 
+# SECTION 5.3.2 OVERALL RESPONSES
 # overall responses
 for (tammorpheme in c("HAB0", "HABra", "PROG0", "PROGra", "PROGp", "FUT0", "FUTra")) {
   for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
@@ -138,7 +144,6 @@ for (tammorpheme in c("HAB0", "HABra", "PROG0", "PROGra", "PROGp", "FUT0", "FUTr
               pull(WOULD_YOU_SAY_THIS) %>% mean() %>% round(digits=2)))
   }
 }
-
 # overall morphological preference scores
 for (tam in c("HAB", "PROG", "FUT")) {
   for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
@@ -150,7 +155,17 @@ for (tam in c("HAB", "PROG", "FUT")) {
   }
 }
 
-# ngo models
+# SECTION 5.3.3 ACCEPTABILITY OF RA-LESS VERBS BEFORE NGO
+
+df_raw %>%
+  select(CONDITION_NAME, WOULD_YOU_SAY_THIS, RESPONDENT_ID, GENDER, AGERANGE) %>%
+  filter(CONDITION_NAME %in%c("HABraINDngo1", "HAB0INDngo1")) %>%
+  pivot_wider(names_from="CONDITION_NAME", values_from="WOULD_YOU_SAY_THIS") %>%
+  ggplot(aes(HABraINDngo1,HAB0INDngo1,colour=AGERANGE,shape=GENDER))+
+  scale_shape_manual(values=c(15,16,17,18))+
+  geom_point(position="jitter",size=3)+ylab("Acceptability of ra-less verb")+
+  xlab("Acceptability of verb with ra-")
+
 # too few observations to use morphological preference scores
 summary(
   lmer(
@@ -188,7 +203,17 @@ summary(
   )
 )
 
-# meaning model
+# SECTION 5.3.4 MEANING OF PROG/FUT RA-
+
+df_raw %>%
+  select(CONDITION_NAME, WOULD_YOU_SAY_THIS, RESPONDENT_ID) %>%
+  filter(CONDITION_NAME %in%c("PROGraINDfinal1", "FUTraINDfinal1", "PROGraINDfinal2", "FUTraINDfinal2")) %>%
+  pivot_wider(names_from="CONDITION_NAME", values_from="WOULD_YOU_SAY_THIS") %>%
+  mutate(PROG_AVG = mean(PROGraINDfinal1, PROGraINDfinal2)) %>%
+  mutate(FUT_AVG = mean(FUTraINDfinal1, FUTraINDfinal2)) %>%
+  ggplot(aes(PROG_AVG, FUT_AVG))+geom_jitter()+
+  xlab("progressive")+ylab("near-future")
+
 summary(
   lmer(
     SCALED_WOULD_YOU_SAY_THIS
@@ -198,7 +223,8 @@ summary(
   )
 )
 
-# acceptability across frames
+# 5.3.5 INDEPENDENCE OF TAM READING AND SYNTACTIC FRAME
+
 df_mps %>%
   filter(TAM=="PROG") %>%
   select(RESPONDENT_ID, FRAME, IMPROVEMENT) %>%
@@ -213,7 +239,9 @@ df_mps %>%
   pivot_wider(names_from="FRAME", values_from="IMPROVEMENT") %>%
   summary()
 
-# negation, relativization, participial models
+# SECTION 5.3.6 ACCEPTABILITY OF PROG/FUT ra- IN SYNTACTIC FRAMES
+
+# negation
 summary(
   lmer(
     SCALED_IMPROVEMENT
@@ -224,6 +252,7 @@ summary(
   )
 )
 
+# relativization
 summary(
   lmer(
     SCALED_IMPROVEMENT
@@ -234,6 +263,7 @@ summary(
   )
 )
 
+# participial
 summary(
   lmer(
     SCALED_IMPROVEMENT
@@ -244,7 +274,16 @@ summary(
   )
 )
 
-# periphrastic scores
+df_mps %>%
+  filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART")) %>%
+  ggplot(aes(AGE, IMPROVEMENT, color=GENDER))+
+  facet_wrap(
+    ~factor(FRAME, levels=c("NEG", "REL", "PART")),
+    labeller=as_labeller(c(`NEG`="negated", `REL`="relativized", `PART`="participial")))+
+  geom_jitter()+geom_smooth(method="lm", se=FALSE)+
+  ylab("Preference for ra-")+xlab("Age")+labs(color="Gender")
+
+# SECTION 5.3.7 PERIPHRASTICS
 
 summary(widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
   mutate(INDfinal = PROGpINDfinal - pmax(PROGraINDfinal, PROG0INDfinal)) %>%
