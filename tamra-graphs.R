@@ -114,26 +114,26 @@ mps <- function(df, values_from) {
 }
 
 df_mps = mps(df_raw, "WOULD_YOU_SAY_THIS")
-df_mps_scaled = mps(df_raw, "SCALED_WOULD_YOU_SAY_THIS")
+df_mps$SCALED_IMPROVEMENT = mps(df_raw, "SCALED_WOULD_YOU_SAY_THIS")$IMPROVEMENT
 
-df_mps_scaled$GENDERREGION <- "Other"
-df_mps_scaled$GENDERREGION[df_mps_scaled$GENDER == "male" & df_mps_scaled$NORTHWEST == "Northwest"] <- "Northwest male"
+df_mps$GENDERREGION <- "Other"
+df_mps$GENDERREGION[df_mps$GENDER == "male" & df_mps$NORTHWEST == "Northwest"] <- "Northwest male"
 
 accepts_prog = df_raw %>%
   filter(TAM == "PROG", FRAME == "INDfinal", MORPHEME == "ra", WOULD_YOU_SAY_THIS >= 4) %>%
   pull(RESPONDENT_ID)
-df_mps_scaled$ACCEPTS_PROG <- "False"
-df_mps_scaled$ACCEPTS_PROG[df_mps_scaled$RESPONDENT_ID %in% accepts_prog] <- "True"
+df_mps$ACCEPTS_PROG <- "False"
+df_mps$ACCEPTS_PROG[df_mps$RESPONDENT_ID %in% accepts_prog] <- "True"
 
 accepts_fut = df_raw %>%
   filter(TAM == "FUT", FRAME == "INDfinal", MORPHEME == "ra", WOULD_YOU_SAY_THIS >= 4) %>%
   pull(RESPONDENT_ID)
-df_mps_scaled$ACCEPTS_FUT <- "False"
-df_mps_scaled$ACCEPTS_FUT[df_mps_scaled$RESPONDENT_ID %in% accepts_fut] <- "True"
+df_mps$ACCEPTS_FUT <- "False"
+df_mps$ACCEPTS_FUT[df_mps$RESPONDENT_ID %in% accepts_fut] <- "True"
 
 # neg, rel, prog
 
-df_mps_scaled %>%
+df_mps %>%
   filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART")) %>%
   ggplot(aes(AGE, IMPROVEMENT, color=GENDER))+
   facet_wrap(

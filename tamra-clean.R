@@ -110,21 +110,25 @@ mps <- function(df, values_from) {
 }
 
 df_mps = mps(df_raw, "WOULD_YOU_SAY_THIS")
-df_mps_scaled = mps(df_raw, "SCALED_WOULD_YOU_SAY_THIS")
+df_mps$SCALED_IMPROVEMENT = mps(df_raw, "SCALED_WOULD_YOU_SAY_THIS")$IMPROVEMENT
 
 # tag respondents based on whether they accept prog or fut
 
 accepts_prog = df_raw %>%
   filter(TAM == "PROG", FRAME == "INDfinal", MORPHEME == "ra", WOULD_YOU_SAY_THIS >= 4) %>%
   pull(RESPONDENT_ID)
-df_mps_scaled$ACCEPTS_PROG <- "False"
-df_mps_scaled$ACCEPTS_PROG[df_mps_scaled$RESPONDENT_ID %in% accepts_prog] <- "True"
+df_raw$ACCEPTS_PROG <- "False"
+df_raw$ACCEPTS_PROG[df_raw$RESPONDENT_ID %in% accepts_prog] <- "True"
+df_mps$ACCEPTS_PROG <- "False"
+df_mps$ACCEPTS_PROG[df_mps$RESPONDENT_ID %in% accepts_prog] <- "True"
   
 accepts_fut = df_raw %>%
   filter(TAM == "FUT", FRAME == "INDfinal", MORPHEME == "ra", WOULD_YOU_SAY_THIS >= 4) %>%
   pull(RESPONDENT_ID)
-df_mps_scaled$ACCEPTS_FUT <- "False"
-df_mps_scaled$ACCEPTS_FUT[df_mps_scaled$RESPONDENT_ID %in% accepts_fut] <- "True"
+df_raw$ACCEPTS_FUT <- "False"
+df_raw$ACCEPTS_FUT[df_raw$RESPONDENT_ID %in% accepts_fut] <- "True"
+df_mps$ACCEPTS_FUT <- "False"
+df_mps$ACCEPTS_FUT[df_mps$RESPONDENT_ID %in% accepts_fut] <- "True"
 
 # overall responses
 for (tammorpheme in c("HAB0", "HABra", "PROG0", "PROGra", "PROGp", "FUT0", "FUTra")) {
@@ -147,7 +151,7 @@ for (tam in c("HAB", "PROG", "FUT")) {
 }
 
 # ngo models
-# too few observations to use improvements
+# too few observations to use morphological preference scores
 summary(
   lmer(
     SCALED_WOULD_YOU_SAY_THIS
@@ -212,9 +216,9 @@ df_mps %>%
 # negation, relativization, participial models
 summary(
   lmer(
-    IMPROVEMENT
+    SCALED_IMPROVEMENT
     ~ AGE * GENDER * NORTHWEST + TAM + (1 | RESPONDENT_ID),
-    data=df_mps_scaled %>%
+    data=df_mps %>%
       filter(FRAME %in% c("NEG"),
              ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")))
   )
@@ -222,9 +226,9 @@ summary(
 
 summary(
   lmer(
-    IMPROVEMENT
+    SCALED_IMPROVEMENT
     ~ AGE * GENDER * NORTHWEST + TAM + (1 | RESPONDENT_ID),
-    data=df_mps_scaled %>%
+    data=df_mps %>%
       filter(FRAME %in% c("REL"),
              ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")))
   )
@@ -232,21 +236,11 @@ summary(
 
 summary(
   lmer(
-    IMPROVEMENT
+    SCALED_IMPROVEMENT
     ~ AGE * GENDER * NORTHWEST + TAM + (1 | RESPONDENT_ID),
-    data=df_mps_scaled %>%
+    data=df_mps %>%
       filter(FRAME %in% c("PART"),
              ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")))
-  )
-)
-
-# TODO doesnt work
-summary(
-  lmer(
-    IMPROVEMENT
-    ~ AGE * GENDER * NORTHWEST * relevel(TAM, "PROG") + (1 | RESPONDENT_ID),
-    data=df_mps_scaled %>%
-      filter(FRAME %in% c("PART"), TAM %in% c("PROG", "FUT"))
   )
 )
 
