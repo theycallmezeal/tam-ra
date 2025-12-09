@@ -387,7 +387,6 @@ summary(
 
 # graphs
 
-# TODO can these be combined?
 df_raw %>%
   filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART"), MORPHEME %in% c("ra", "0")) %>%
   ggplot(aes(AGE, SCALED_WOULD_YOU_SAY_THIS, color=GENDER))+
