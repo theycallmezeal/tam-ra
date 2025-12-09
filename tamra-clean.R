@@ -412,14 +412,16 @@ neg_rel_part = rbind(
     select(PROGraNEG, PROGraREL, PROGraPART) %>%
     rename(NEG = PROGraNEG) %>%
     rename(REL = PROGraREL) %>%
-    rename(PART = PROGraPART),
+    rename(PART = PROGraPART) %>%
+    mutate(TAM = "PROG"),
   
   widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
     filter(RESPONDENT_ID %in% accepts_fut) %>%
     select(FUTraNEG, FUTraREL, FUTraPART) %>%
     rename(NEG = FUTraNEG) %>%
     rename(REL = FUTraREL) %>%
-    rename(PART = FUTraPART)
+    rename(PART = FUTraPART) %>%
+    mutate(TAM = "FUT")
 )
 
 neg_rel_part %>%
@@ -431,15 +433,15 @@ neg_rel_part %>%
   xlab("Scaled score: ra- in negation") + ylab("Scaled score: ra- in other environment")
 
 summary(
-  lmer(NEG ~ REL + (0 + REL | RESPONDENT_ID),
+  lmer(REL ~ NEG * TAM + (1 | RESPONDENT_ID),
        data = neg_rel_part))
 
 summary(
-  lmer(NEG ~ PART + (1 | RESPONDENT_ID),
+  lmer(PART ~ NEG * TAM + (1 | RESPONDENT_ID),
        data = neg_rel_part))
 
 summary(
-  lmer(PART ~ REL + (1 | RESPONDENT_ID),
+  lmer(REL ~ PART * TAM + (1 | RESPONDENT_ID),
        data = neg_rel_part)) 
 
 # SECTION 5.3.7 PERIPHRASTICS
