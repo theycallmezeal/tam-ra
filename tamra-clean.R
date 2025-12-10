@@ -102,6 +102,7 @@ mps <- function(df, values_from) {
   
   result$TAM <- "HAB"
   result$TAM[grepl("PROG", result$CONDITION)] <- "PROG"
+  result$TAM[grepl("PERIPHRASTIC", result$CONDITION)] <- "PERIPHRASTIC"
   result$TAM[grepl("FUT", result$CONDITION)] <- "FUT"
   
   result$FRAME <- "INDDP"
@@ -147,6 +148,13 @@ for (tammorpheme in c("HAB0", "HABra", "PROG0", "PROGra", "PROGp", "FUT0", "FUTr
               pull(WOULD_YOU_SAY_THIS) %>% mean() %>% round(digits=2)))
   }
 }
+for (tammorpheme in c("HAB0", "HABra", "PROG0", "PROGra", "PROGp", "FUT0", "FUTra")) {
+  for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
+    print(c(tammorpheme, frame, df_raw %>%
+              filter(TAMMORPHEME == tammorpheme, FRAME == frame) %>%
+              pull(SCALED_WOULD_YOU_SAY_THIS) %>% mean() %>% round(digits=2)))
+  }
+}
 # overall morphological preference scores
 for (tam in c("HAB", "PROG", "FUT")) {
   for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
@@ -157,33 +165,30 @@ for (tam in c("HAB", "PROG", "FUT")) {
               round(digits = 2)))
   }
 }
+for (tam in c("HAB", "PROG", "FUT")) {
+  for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
+    print(c(tam, frame, df_mps %>%
+              filter(TAM==tam, FRAME==frame) %>%
+              pull(SCALED_IMPROVEMENT) %>%
+              mean() %>%
+              round(digits = 2)))
+  }
+}
 
-# 5.3.3 INDEPENDENCE OF TAM READING AND SYNTACTIC FRAME
+# 5.3.3 ACCEPTANCE OF TAM READING; INDEPENDENCE OF SYNTACTIC FRAME
 
-df_mps %>%
-  filter(TAM=="PROG") %>%
-  select(RESPONDENT_ID, FRAME, IMPROVEMENT) %>%
-  filter(RESPONDENT_ID %in% accepts_prog) %>%
-  pivot_wider(names_from="FRAME", values_from="IMPROVEMENT") %>%
-  summary()
+accepts_prog %>% unique() %>% length()
+accepts_fut %>% unique() %>% length()
+intersect(accepts_prog, accepts_fut) %>% unique() %>% length()
+union(accepts_prog, accepts_fut) %>% unique() %>% length()
 
-df_mps %>%
-  filter(TAM=="FUT") %>%
-  select(RESPONDENT_ID, FRAME, IMPROVEMENT) %>%
-  filter(RESPONDENT_ID %in% accepts_prog) %>%
-  pivot_wider(names_from="FRAME", values_from="IMPROVEMENT") %>%
-  summary()
-
-df_raw %>%
-  filter(TAM=="PROG", MORPHEME=="ra") %>%
-  select(RESPONDENT_ID, FRAME, WOULD_YOU_SAY_THIS, CONDITION_NAME) %>%
-  filter(RESPONDENT_ID %in% accepts_prog)
-
-df_raw %>%
-  filter(TAM=="PROG", MORPHEME=="ra", RESPONDENT_ID %in% accepts_prog)
-
-# average mps for people who accept tam readings
+# scores
 widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
+  filter(RESPONDENT_ID %in% accepts_prog) %>%
+  select(starts_with("PROG0") | starts_with("PROGra"))  %>%
+  summary()
+
+widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
   filter(RESPONDENT_ID %in% accepts_prog) %>%
   select(starts_with("PROG0") | starts_with("PROGra"))  %>%
   summary()
@@ -193,6 +198,54 @@ widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
   select(starts_with("FUT0") | starts_with("FUTra")) %>%
   summary()
 
+widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+  filter(RESPONDENT_ID %in% accepts_fut) %>%
+  select(starts_with("FUT0") | starts_with("FUTra")) %>%
+  summary()
+
+# average mps for people who accept tam readings
+df_mps %>%
+  filter(TAM=="PROG") %>%
+  select(RESPONDENT_ID, FRAME, IMPROVEMENT) %>%
+  filter(RESPONDENT_ID %in% accepts_prog) %>%
+  pivot_wider(names_from="FRAME", values_from="IMPROVEMENT") %>%
+  summary()
+
+df_mps %>%
+  filter(TAM=="PROG") %>%
+  select(RESPONDENT_ID, FRAME, SCALED_IMPROVEMENT) %>%
+  filter(RESPONDENT_ID %in% accepts_prog) %>%
+  pivot_wider(names_from="FRAME", values_from="SCALED_IMPROVEMENT") %>%
+  summary()
+
+df_mps %>%
+  filter(TAM=="FUT") %>%
+  select(RESPONDENT_ID, FRAME, IMPROVEMENT) %>%
+  filter(RESPONDENT_ID %in% accepts_prog) %>%
+  pivot_wider(names_from="FRAME", values_from="IMPROVEMENT") %>%
+  summary()
+
+df_mps %>%
+  filter(TAM=="FUT") %>%
+  select(RESPONDENT_ID, FRAME, SCALED_IMPROVEMENT) %>%
+  filter(RESPONDENT_ID %in% accepts_prog) %>%
+  pivot_wider(names_from="FRAME", values_from="SCALED_IMPROVEMENT") %>%
+  summary()
+
+# how many people accept at all in either TAM?
+for (morpheme in c("ra", "0")) {
+    for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
+      print(c(morpheme, frame, df_raw %>%
+        filter(
+          MORPHEME == morpheme, FRAME == frame, TAM == "PROG" | TAM == "FUT",
+          SCALED_WOULD_YOU_SAY_THIS > 0
+          ) %>%
+        select(RESPONDENT_ID) %>%
+        unique() %>%
+        nrow()))
+    }
+}
+
 # how many people accept? PROG accepters, FUT accepters
 for (morpheme in c("ra", "0")) {
   for (tam in c("PROG", "FUT")) {
@@ -200,7 +253,7 @@ for (morpheme in c("ra", "0")) {
       print(c(morpheme, tam, frame, df_raw %>%
                 filter(RESPONDENT_ID %in% if (tam == "PROG") accepts_prog else accepts_fut) %>%
                 filter(MORPHEME == morpheme, FRAME == frame, TAM == tam) %>%
-                filter(WOULD_YOU_SAY_THIS >= 4) %>%
+                filter(SCALED_WOULD_YOU_SAY_THIS > 0) %>%
                 select(RESPONDENT_ID) %>%
                 unique() %>%
                 nrow()))
@@ -208,55 +261,29 @@ for (morpheme in c("ra", "0")) {
   }
 }
 
-# SECTION 5.3.4 ACCEPTABILITY OF RA-LESS VERBS BEFORE NGO
-
-df_raw %>%
-  select(CONDITION_NAME, WOULD_YOU_SAY_THIS, RESPONDENT_ID, GENDER, AGERANGE) %>%
-  filter(CONDITION_NAME %in%c("HABraINDngo1", "HAB0INDngo1")) %>%
-  pivot_wider(names_from="CONDITION_NAME", values_from="WOULD_YOU_SAY_THIS") %>%
-  ggplot(aes(HABraINDngo1,HAB0INDngo1,color=AGERANGE,shape=GENDER))+
-  scale_shape_manual(values=c(15,16,17,18))+
-  geom_point(position="jitter",size=3)+
-  labs(x="Verb with ra-", y="Verb without ra-", color="Age range", shape="Gender")
-
-# too few observations to use morphological preference scores
-summary(
-  lmer(
-    SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(CONDITION_NAME %in% c("HAB0INDngo1", "HAB0INDngo2"))
+# how many people accept across the board?
+widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+  filter(
+    PROGraINDfinal > 0, PROGraINDDP > 0, PROGraINDngo > 0, PROGraINDko > 0,
+    PROGraNEG > 0, PROGraREL > 0, PROGraPART > 0
   )
-)
 
-summary(
-  lmer(
-    SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(CONDITION_NAME %in% c("HABraINDngo1", "HABraINDngo2"))
+widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+  filter(
+    FUTraINDfinal > 0, FUTraINDDP > 0, FUTraINDngo > 0, FUTraINDko > 0,
+    FUTraNEG > 0, FUTraREL > 0, FUTraPART > 0
   )
-)
 
-summary(
-  lmer(
-    SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST_DIALECT + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(CONDITION_NAME %in% c("HAB0INDngo1", "HAB0INDngo2"))
+widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+  filter(
+    PROGraINDfinal > 0, PROGraINDDP > 0, PROGraINDngo > 0, PROGraINDko > 0,
+    PROGraNEG > 0, PROGraREL > 0, PROGraPART > 0,
+    FUTraINDfinal > 0, FUTraINDDP > 0, FUTraINDngo > 0, FUTraINDko > 0,
+    FUTraNEG > 0, FUTraREL > 0, FUTraPART > 0
   )
-)
+  
 
-summary(
-  lmer(
-    SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST_DIALECT + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(CONDITION_NAME %in% c("HABraINDngo1", "HABraINDngo2"))
-  )
-)
-
-# SECTION 5.3.5 MEANING OF PROG/FUT RA-
+# SECTION 5.3.4 MEANING OF PROG/FUT RA-
 
 df_raw %>%
   select(CONDITION_NAME, WOULD_YOU_SAY_THIS, RESPONDENT_ID) %>%
@@ -316,6 +343,54 @@ grid.arrange(
 
 summary(lm(PROGra ~ FUTra, prog_fut_responses))
 summary(lm(PROG0 ~ FUT0, prog_fut_responses))
+
+# SECTION 5.3.5 ACCEPTABILITY OF RA-LESS VERBS BEFORE NGO
+
+df_raw %>%
+  select(CONDITION_NAME, WOULD_YOU_SAY_THIS, RESPONDENT_ID, GENDER, AGERANGE) %>%
+  filter(CONDITION_NAME %in%c("HABraINDngo1", "HAB0INDngo1")) %>%
+  pivot_wider(names_from="CONDITION_NAME", values_from="WOULD_YOU_SAY_THIS") %>%
+  ggplot(aes(HABraINDngo1,HAB0INDngo1,color=AGERANGE,shape=GENDER))+
+  scale_shape_manual(values=c(15,16,17,18))+
+  geom_point(position="jitter",size=3)+
+  labs(x="Verb with ra-", y="Verb without ra-", color="Age range", shape="Gender")
+
+# too few observations to use morphological preference scores
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(CONDITION_NAME %in% c("HAB0INDngo1", "HAB0INDngo2"))
+  )
+)
+
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(CONDITION_NAME %in% c("HABraINDngo1", "HABraINDngo2"))
+  )
+)
+
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST_DIALECT + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(CONDITION_NAME %in% c("HAB0INDngo1", "HAB0INDngo2"))
+  )
+)
+
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST_DIALECT + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(CONDITION_NAME %in% c("HABraINDngo1", "HABraINDngo2"))
+  )
+)
 
 # SECTION 5.3.6 ACCEPTABILITY OF PROG/FUT ra- IN SYNTACTIC FRAMES
 
