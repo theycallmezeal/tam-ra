@@ -2,6 +2,7 @@ library(tidyverse)
 library(factoextra)
 library(lmerTest)
 library(gridExtra)
+library(ggpubr)
 
 df_raw <- read.csv(file.choose(), header=T) # select transformed_data.csv
 
@@ -22,6 +23,11 @@ df_raw$AGERANGE[df_raw$AGE >= 30] <- "30-39"
 df_raw$AGERANGE[df_raw$AGE >= 40] <- "40-49"
 df_raw$AGERANGE[df_raw$AGE >= 50] <- "50-59"
 
+df_raw$GENDERREGION <- "Elsewhere female"
+df_raw$GENDERREGION[df_raw$GENDER == "male" & df_raw$NORTHWEST == "Elsewhere"] <- "Elsewhere male"
+df_raw$GENDERREGION[df_raw$GENDER == "female" & df_raw$NORTHWEST == "Northwest"] <- "Northwest female"
+df_raw$GENDERREGION[df_raw$GENDER == "male" & df_raw$NORTHWEST == "Northwest"] <- "Northwest male"
+
 # scale responses
 df_raw = df_raw %>%
   group_by(RESPONDENT_ID) %>%
@@ -30,7 +36,8 @@ df_raw = df_raw %>%
 widen <- function(df, values_from) {
   return(df %>%
     pivot_wider(id_cols=c("RESPONDENT_ID", "AGE", "GENDER", "REGION",
-                          "NORTHWEST", "NORTHWEST_DIALECT"),
+                          "NORTHWEST", "NORTHWEST_DIALECT", "AGERANGE",
+                          "GENDERREGION"),
                 names_from="CONDITION_NAME",
                 values_from=values_from) %>%
     mutate(HAB0INDngo = (HAB0INDngo1 + HAB0INDngo2) / 2) %>%
@@ -285,14 +292,18 @@ widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
 
 # SECTION 5.3.4 MEANING OF PROG/FUT RA-
 
-df_raw %>%
-  select(CONDITION_NAME, WOULD_YOU_SAY_THIS, RESPONDENT_ID) %>%
-  filter(CONDITION_NAME %in%c("PROGraINDfinal1", "FUTraINDfinal1", "PROGraINDfinal2", "FUTraINDfinal2")) %>%
-  pivot_wider(names_from="CONDITION_NAME", values_from="WOULD_YOU_SAY_THIS") %>%
-  mutate(PROG_AVG = mean(PROGraINDfinal1, PROGraINDfinal2)) %>%
-  mutate(FUT_AVG = mean(FUTraINDfinal1, FUTraINDfinal2)) %>%
-  ggplot(aes(PROG_AVG, FUT_AVG))+geom_jitter()+
-  xlab("PROG")+ylab("FUT")
+grid.arrange(
+  widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
+    select(PROGraINDfinal, FUTraINDfinal) %>%
+    ggplot(aes(PROGraINDfinal, FUTraINDfinal))+geom_jitter(width=0.1, height=0.1)+
+    labs(title="unscaled", x="PROG", y="FUT")+theme(plot.title = element_text(hjust = 0.5)),
+  widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+    select(PROGraINDfinal, FUTraINDfinal) %>%
+    ggplot(aes(PROGraINDfinal, FUTraINDfinal))+geom_jitter(width=0.1, height=0.1)+
+    labs(title="scaled", x="PROG", y="FUT")+theme(plot.title = element_text(hjust = 0.5))+
+    geom_vline(xintercept=0)+geom_hline(yintercept=0),
+  ncol=2
+)
 
 summary(
   lmer(
@@ -330,13 +341,13 @@ prog_fut_responses = widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
 grid.arrange(
   prog_fut_responses %>%
     ggplot(aes(PROGra, FUTra)) + geom_jitter(width=0.1, height=0.1) + geom_smooth(method="lm") +
-    xlab("PROG, verb with ra-") +
-    ylab("FUT, verb with ra-"),
+    xlab("PROG, ra-") +
+    ylab("FUT, ra-"),
   
   prog_fut_responses %>%
     ggplot(aes(PROG0, FUT0)) + geom_jitter(width=0.1, height=0.1) + geom_smooth(method="lm") +
-    xlab("PROG, verb without ra-") +
-    ylab("FUT, verb without ra-"),
+    xlab("PROG, ra-less verb") +
+    ylab("FUT, ra-less verb"),
   
   ncol=2
 )
@@ -346,51 +357,79 @@ summary(lm(PROG0 ~ FUT0, prog_fut_responses))
 
 # SECTION 5.3.5 ACCEPTABILITY OF RA-LESS VERBS BEFORE NGO
 
-df_raw %>%
-  select(CONDITION_NAME, WOULD_YOU_SAY_THIS, RESPONDENT_ID, GENDER, AGERANGE) %>%
-  filter(CONDITION_NAME %in%c("HABraINDngo1", "HAB0INDngo1")) %>%
-  pivot_wider(names_from="CONDITION_NAME", values_from="WOULD_YOU_SAY_THIS") %>%
-  ggplot(aes(HABraINDngo1,HAB0INDngo1,color=AGERANGE,shape=GENDER))+
-  scale_shape_manual(values=c(15,16,17,18))+
-  geom_point(position="jitter",size=3)+
-  labs(x="Verb with ra-", y="Verb without ra-", color="Age range", shape="Gender")
+widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+  filter(HABraINDngo > 0, HAB0INDngo > 0) %>%
+  pull(RESPONDENT_ID) %>% length()
+widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+  filter(HABraINDngo <= 0, HAB0INDngo > 0) %>%
+  pull(RESPONDENT_ID) %>% length()
+widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+  filter(HABraINDngo > 0, HAB0INDngo <= 0) %>%
+  pull(RESPONDENT_ID) %>% length()
+widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+  filter(HABraINDngo <= 0, HAB0INDngo <= 0) %>%
+  pull(RESPONDENT_ID) %>% length()
 
-# too few observations to use morphological preference scores
-summary(
-  lmer(
-    SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(CONDITION_NAME %in% c("HAB0INDngo1", "HAB0INDngo2"))
-  )
+grid.arrange(
+  widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
+    ggplot(aes(HABraINDngo, HAB0INDngo))+geom_jitter(width=0.1, height=0.1)+
+    labs(title="unscaled", x="ra-", y="ra-less verb")+
+    theme(plot.title = element_text(hjust = 0.5))+
+    scale_shape_manual(values=c(15,16,17,18)),
+  widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+    select(HABraINDngo, HAB0INDngo) %>%
+    ggplot(aes(HABraINDngo, HAB0INDngo))+geom_jitter(width=0.1, height=0.1)+
+    labs(title="unscaled", x="ra-", y="ra-less verb")+theme(plot.title = element_text(hjust = 0.5))+
+    geom_vline(xintercept=0)+geom_hline(yintercept=0),
+  ncol=2
 )
 
-summary(
-  lmer(
-    SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(CONDITION_NAME %in% c("HABraINDngo1", "HABraINDngo2"))
-  )
+summary(lm(HABraINDngo ~ AGE * GENDER * NORTHWEST,
+           data=widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS")))
+summary(lm(HAB0INDngo ~ AGE * GENDER * NORTHWEST,
+           data=widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS")))
+summary(lm(HABraINDngo ~ AGE * GENDER * NORTHWEST_DIALECT,
+           data=widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS")))
+summary(lm(HAB0INDngo ~ AGE * GENDER * NORTHWEST_DIALECT,
+           data=widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS")))
+summary(lm(SCALED_IMPROVEMENT ~ AGE * GENDER * NORTHWEST,
+           data=df_mps %>% filter(CONDITION == "HABINDngo")))
+
+
+ggarrange(
+  widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
+    na.omit() %>%
+    mutate(DEMOGRAPHIC = ifelse(GENDER == "male", "Men",
+                                ifelse(AGE > 32, "Other women",
+                                       ifelse(NORTHWEST_DIALECT == "Elsewhere", "Other young women", "Young women users of NW dialects")))) %>%
+    ggplot(aes(HABraINDngo, HAB0INDngo,color=DEMOGRAPHIC))+geom_jitter(width=0.1, height=0.1)+
+    labs(title="unscaled", x="ra-", y="ra-less verb")+
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(legend.position="none")+
+    scale_shape_manual(values=c(15,16,17,18))+
+    scale_color_discrete(breaks=c("Young women users of NW dialects",
+                                  "Other young women",
+                                  "Other women",
+                                  "Men")),
+  
+  widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+    na.omit() %>%
+    mutate(DEMOGRAPHIC = ifelse(GENDER == "male", "Men",
+                                ifelse(AGE > 32, "Other women",
+                                       ifelse(NORTHWEST_DIALECT == "Elsewhere", "Other young women", "Young women users of NW dialects")))) %>%
+    ggplot(aes(HABraINDngo, HAB0INDngo,color=DEMOGRAPHIC))+geom_jitter(width=0.1, height=0.1)+
+    labs(title="scaled", x="ra-", y="ra-less verb")+
+    theme(plot.title = element_text(hjust = 0.5))+
+    scale_shape_manual(values=c(15,16,17,18))+
+    geom_vline(xintercept=0)+geom_hline(yintercept=0)+
+    scale_color_discrete(breaks=c("Young women users of NW dialects",
+                                  "Other young women",
+                                  "Other women",
+                                  "Men")),
+  
+  ncol=2, common.legend = TRUE, legend="right"
 )
 
-summary(
-  lmer(
-    SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST_DIALECT + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(CONDITION_NAME %in% c("HAB0INDngo1", "HAB0INDngo2"))
-  )
-)
-
-summary(
-  lmer(
-    SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST_DIALECT + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(CONDITION_NAME %in% c("HABraINDngo1", "HABraINDngo2"))
-  )
-)
 
 # SECTION 5.3.6 ACCEPTABILITY OF PROG/FUT ra- IN SYNTACTIC FRAMES
 
