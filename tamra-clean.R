@@ -370,32 +370,6 @@ widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
   filter(HABraINDngo <= 0, HAB0INDngo <= 0) %>%
   pull(RESPONDENT_ID) %>% length()
 
-grid.arrange(
-  widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
-    ggplot(aes(HABraINDngo, HAB0INDngo))+geom_jitter(width=0.1, height=0.1)+
-    labs(title="unscaled", x="ra-", y="ra-less verb")+
-    theme(plot.title = element_text(hjust = 0.5))+
-    scale_shape_manual(values=c(15,16,17,18)),
-  widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
-    select(HABraINDngo, HAB0INDngo) %>%
-    ggplot(aes(HABraINDngo, HAB0INDngo))+geom_jitter(width=0.1, height=0.1)+
-    labs(title="unscaled", x="ra-", y="ra-less verb")+theme(plot.title = element_text(hjust = 0.5))+
-    geom_vline(xintercept=0)+geom_hline(yintercept=0),
-  ncol=2
-)
-
-summary(lm(HABraINDngo ~ AGE * GENDER * NORTHWEST,
-           data=widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS")))
-summary(lm(HAB0INDngo ~ AGE * GENDER * NORTHWEST,
-           data=widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS")))
-summary(lm(HABraINDngo ~ AGE * GENDER * NORTHWEST_DIALECT,
-           data=widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS")))
-summary(lm(HAB0INDngo ~ AGE * GENDER * NORTHWEST_DIALECT,
-           data=widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS")))
-summary(lm(SCALED_IMPROVEMENT ~ AGE * GENDER * NORTHWEST,
-           data=df_mps %>% filter(CONDITION == "HABINDngo")))
-
-
 ggarrange(
   widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
     na.omit() %>%
@@ -427,8 +401,19 @@ ggarrange(
                                   "Other women",
                                   "Men")),
   
-  ncol=2, common.legend = TRUE, legend="right"
+  ncol=2, common.legend = TRUE, legend="bottom"
 )
+
+summary(lm(HABraINDngo ~ AGE * GENDER * NORTHWEST,
+           data=widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS")))
+summary(lm(HAB0INDngo ~ AGE * GENDER * NORTHWEST,
+           data=widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS")))
+summary(lm(HABraINDngo ~ AGE * GENDER * NORTHWEST_DIALECT,
+           data=widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS")))
+summary(lm(HAB0INDngo ~ AGE * GENDER * NORTHWEST_DIALECT,
+           data=widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS")))
+summary(lm(SCALED_IMPROVEMENT ~ AGE * GENDER * NORTHWEST,
+           data=df_mps %>% filter(CONDITION == "HABINDngo")))
 
 
 # SECTION 5.3.6 ACCEPTABILITY OF PROG/FUT ra- IN SYNTACTIC FRAMES
