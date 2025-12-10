@@ -122,7 +122,8 @@ df_mps$SCALED_IMPROVEMENT = mps(df_raw, "SCALED_WOULD_YOU_SAY_THIS")$IMPROVEMENT
 
 accepts_prog = df_raw %>%
   filter(TAM == "PROG", FRAME == "INDfinal", MORPHEME == "ra", WOULD_YOU_SAY_THIS >= 4) %>%
-  pull(RESPONDENT_ID)
+  pull(RESPONDENT_ID) %>%
+  unique()
 df_raw$ACCEPTS_PROG <- "False"
 df_raw$ACCEPTS_PROG[df_raw$RESPONDENT_ID %in% accepts_prog] <- "True"
 df_mps$ACCEPTS_PROG <- "False"
@@ -130,7 +131,8 @@ df_mps$ACCEPTS_PROG[df_mps$RESPONDENT_ID %in% accepts_prog] <- "True"
   
 accepts_fut = df_raw %>%
   filter(TAM == "FUT", FRAME == "INDfinal", MORPHEME == "ra", WOULD_YOU_SAY_THIS >= 4) %>%
-  pull(RESPONDENT_ID)
+  pull(RESPONDENT_ID) %>%
+  unique()
 df_raw$ACCEPTS_FUT <- "False"
 df_raw$ACCEPTS_FUT[df_raw$RESPONDENT_ID %in% accepts_fut] <- "True"
 df_mps$ACCEPTS_FUT <- "False"
