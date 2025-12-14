@@ -104,7 +104,7 @@ mps <- function(df, values_from) {
            mutate(PERIPHRASTICPART = PROGpPART - pmax(PROGraPART, PROG0PART)) %>%
            select(-contains(c("0", "ra", "PROGp"), ignore.case=FALSE)) %>%
            pivot_longer(!all_of(c("RESPONDENT_ID", "AGE", "GENDER", "REGION",
-                                  "NORTHWEST", "NORTHWEST_DIALECT")),
+                                  "NORTHWEST", "NORTHWEST_DIALECT", "AGERANGE", "GENDERREGION")),
                         names_to="CONDITION", values_to="IMPROVEMENT")
   
   result$TAM <- "HAB"
@@ -528,24 +528,25 @@ summary(
 
 # graphs
 
-df_raw %>%
-  filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART"), MORPHEME %in% c("ra", "0")) %>%
-  ggplot(aes(AGE, SCALED_WOULD_YOU_SAY_THIS, color=GENDER))+
-  facet_grid(
-    factor(MORPHEME, levels=c("ra", "0")) ~ factor(FRAME, levels=c("NEG", "REL", "PART")),
-    labeller=as_labeller(c(`NEG`="negated", `REL`="relativized", `PART`="participial", `ra`="ra-", `0`="0")))+
-  geom_jitter()+geom_smooth(method="lm", se=FALSE)+
-  ylab("Preference for morpheme")+xlab("Age")+labs(color="Gender")
-
-df_mps %>%
-  filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART")) %>%
-  ggplot(aes(AGE, IMPROVEMENT, color=GENDER))+
-  facet_wrap(
-    ~factor(FRAME, levels=c("NEG", "REL", "PART")),
-    labeller=as_labeller(c(`NEG`="negated", `REL`="relativized", `PART`="participial")))+
-  geom_jitter()+geom_smooth(method="lm", se=FALSE)+
-  ylab("Preference for ra-")+xlab("Age")+labs(color="Gender")
-
+rbind(
+  df_raw %>%
+    filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART"), MORPHEME %in% c("ra", "0")) %>%
+    mutate(TYPE=ifelse(MORPHEME == "ra", "ra", "0")) %>%
+    select(SCALED_WOULD_YOU_SAY_THIS, AGE, GENDER, TYPE, FRAME) %>%
+    rename(SCORE = SCALED_WOULD_YOU_SAY_THIS),
+  
+  df_mps %>%
+    filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART")) %>%
+    mutate(TYPE="mps") %>%
+    select(SCALED_IMPROVEMENT, AGE, GENDER, TYPE, FRAME) %>%
+    rename(SCORE = SCALED_IMPROVEMENT)
+) %>%
+ggplot(aes(AGE, SCORE, color=GENDER))+
+facet_grid(
+  factor(TYPE, levels=c("ra", "0", "mps")) ~ factor(FRAME, levels=c("NEG", "REL", "PART")),
+  labeller=as_labeller(c(`NEG`="negation", `REL`="relativization", `PART`="participial", `ra`="scaled acceptance score of verb with ra-", `0`="scaled acceptance score of ra-less verb", `mps`="post-scaling morphological preference score")))+
+geom_jitter()+geom_smooth(method="lm", se=FALSE)+
+ylab(NULL)+xlab("Age")+labs(color="Gender")
 
 # does acceptance of negated ra- imply acceptance of rel / part or vice versa?
 
