@@ -183,6 +183,20 @@ for (tam in c("HAB", "PROG", "FUT")) {
   }
 }
 
+# awareness
+
+df_raw %>%
+  ggplot(aes(SCALED_WOULD_YOU_SAY_THIS, SCALED_AWARENESS))+
+  geom_jitter()+geom_smooth(method="lm")+
+  labs(x="scaled acceptance scores", y="scaled awareness scores")
+
+summary(
+  lmer(
+    SCALED_AWARENESS ~ SCALED_WOULD_YOU_SAY_THIS + (1 | RESPONDENT_ID),
+    data=df_raw
+  )
+)
+
 # 5.3.3 ACCEPTANCE OF TAM READING; INDEPENDENCE OF SYNTACTIC FRAME
 
 accepts_prog %>% unique() %>% length()
@@ -646,33 +660,7 @@ summary(lm(NEG ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preference
 summary(lm(REL ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
 summary(lm(PART ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
 
-# AWARENESS
-
-df_raw %>%
-  ggplot(aes(SCALED_WOULD_YOU_SAY_THIS, SCALED_AWARENESS))+geom_jitter()+geom_smooth(method="lm")
-
-proportion_awareness_above_use = data.frame()
-for (condition_type in df_raw %>%
-     mutate(TYPE = gsub("1|2", "", CONDITION_NAME)) %>%
-     pull(TYPE) %>% unique()) {
-  proportion_awareness_above_use = rbind(proportion_awareness_above_use, c(condition_type,
-          df_raw %>% filter(
-            grepl(condition_type, CONDITION_NAME, fixed=TRUE),
-            SCALED_AWARENESS >= SCALED_WOULD_YOU_SAY_THIS) %>%
-            nrow() /
-            df_raw %>% filter(grepl(condition_type, CONDITION_NAME, fixed=TRUE)) %>% nrow()))
-}
-colnames(proportion_awareness_above_use) <- c("CONDITION", "PROPORTION")
-proportion_awareness_above_use %>%
-  mutate(PROPORTION = as.double(PROPORTION)) %>%
-  ggplot(aes(PROPORTION))+geom_histogram(bin_width=0.1)
-  
-summary(
-  lmer(
-    SCALED_AWARENESS ~ SCALED_WOULD_YOU_SAY_THIS + (1 | RESPONDENT_ID),
-    data=df_raw
-  )
-)
+# SECTION 6.2.1 NEGATION AS THE SOLE ENVIRONMENT FOR CHANGE: SEGMENTAL DISTINCTIVENESS?
 
 df_raw %>%
   filter(TAM == "PROG" | TAM == "FUT") %>%
