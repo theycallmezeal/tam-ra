@@ -377,7 +377,7 @@ ggarrange(
                                 ifelse(AGE > 32, "Other women",
                                        ifelse(NORTHWEST_DIALECT == "Elsewhere", "Other young women", "Young women users of NW dialects")))) %>%
     ggplot(aes(HABraINDngo, HAB0INDngo,color=DEMOGRAPHIC))+geom_jitter(width=0.1, height=0.1)+
-    labs(title="unscaled", x="ra-", y="ra-less verb")+
+    labs(title="unscaled", x="ra-", y="ra-less verb", color="Demographic")+
     theme(plot.title = element_text(hjust = 0.5))+
     theme(legend.position="none")+
     scale_shape_manual(values=c(15,16,17,18))+
@@ -392,7 +392,7 @@ ggarrange(
                                 ifelse(AGE > 32, "Other women",
                                        ifelse(NORTHWEST_DIALECT == "Elsewhere", "Other young women", "Young women users of NW dialects")))) %>%
     ggplot(aes(HABraINDngo, HAB0INDngo,color=DEMOGRAPHIC))+geom_jitter(width=0.1, height=0.1)+
-    labs(title="scaled", x="ra-", y="ra-less verb")+
+    labs(title="scaled", x="ra-", y="ra-less verb", color="Demographic")+
     theme(plot.title = element_text(hjust = 0.5))+
     scale_shape_manual(values=c(15,16,17,18))+
     geom_vline(xintercept=0)+geom_hline(yintercept=0)+
@@ -527,7 +527,6 @@ summary(
 )
 
 # graphs
-
 rbind(
   df_raw %>%
     filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART"), MORPHEME %in% c("ra", "0")) %>%
@@ -545,7 +544,7 @@ ggplot(aes(AGE, SCORE, color=GENDER))+
 facet_grid(
   factor(TYPE, levels=c("ra", "0", "mps")) ~ factor(FRAME, levels=c("NEG", "REL", "PART")),
   labeller=as_labeller(c(`NEG`="negation", `REL`="relativization", `PART`="participial", `ra`="scaled acceptance score of verb with ra-", `0`="scaled acceptance score of ra-less verb", `mps`="post-scaling morphological preference score")))+
-geom_jitter()+geom_smooth(method="lm", se=FALSE)+
+geom_jitter()+
 ylab(NULL)+xlab("Age")+labs(color="Gender")
 
 # does acceptance of negated ra- imply acceptance of rel / part or vice versa?
@@ -572,9 +571,9 @@ neg_rel_part %>%
   pivot_longer(names_to = "TYPE", values_to = "SCORE", cols=c("PART", "REL")) %>%
   ggplot(
     aes(NEG, SCORE, color=TAM)
-  ) + geom_jitter(width = 0.05, height = 0.05) + geom_smooth(method="lm") +
+  ) + geom_jitter(width = 0.05, height = 0.05) + geom_smooth(method="lm", se=FALSE) +
   facet_wrap(~ factor(TYPE, levels=c("REL", "PART")), labeller=as_labeller(c(`NEG`="negated", `REL`="relativized", `PART`="participial"))) +
-  xlab("Negation") + ylab("Other environment")
+  xlab("negation") + ylab(NULL)
 
 summary(
   lmer(REL ~ NEG * TAM + (1 | RESPONDENT_ID),
@@ -586,9 +585,31 @@ summary(
 
 summary(
   lmer(REL ~ PART * TAM + (1 | RESPONDENT_ID),
-       data = neg_rel_part)) 
+       data = neg_rel_part))
 
-# SECTION 5.3.7 PERIPHRASTICS
+neg_rel_part %>%
+  filter(TAM == "PROG", NEG < 0, REL < 0, PART < 0) %>%
+  nrow()
+
+for (tam in c("PROG", "FUT")) {
+  for (neg in c(TRUE, FALSE)) {
+    for (rel in c(TRUE, FALSE)) {
+      for (part in c(TRUE, FALSE)) {
+        print(c(tam, neg, rel, part,
+                neg_rel_part %>%
+                  filter(
+                    TAM == tam,
+                    ifelse(neg, NEG >= 0, NEG < 0),
+                    ifelse(rel, REL >= 0, REL < 0),
+                    ifelse(part, PART >= 0, PART < 0),
+                    ) %>%
+                  nrow()))
+      }
+    }
+  }
+}
+
+# SECTION 5.3.8 PERIPHRASTICS
 
 periphrastic_preferences = widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
   mutate(INDfinal = PROGpINDfinal - pmax(PROGraINDfinal, PROG0INDfinal)) %>%
