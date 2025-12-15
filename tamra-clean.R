@@ -31,7 +31,8 @@ df_raw$GENDERREGION[df_raw$GENDER == "male" & df_raw$NORTHWEST == "Northwest"] <
 # scale responses
 df_raw = df_raw %>%
   group_by(RESPONDENT_ID) %>%
-  mutate(SCALED_WOULD_YOU_SAY_THIS = scale(WOULD_YOU_SAY_THIS))
+  mutate(SCALED_WOULD_YOU_SAY_THIS = scale(WOULD_YOU_SAY_THIS)) %>%
+  mutate(SCALED_AWARENESS = scale(HAVE_YOU_HEARD_THIS))
 
 widen <- function(df, values_from) {
   return(df %>%
@@ -622,13 +623,77 @@ periphrastic_preferences = widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
   mutate(AVG = mean(c(INDfinal, INDDP, INDngo, INDko, NEG, REL, PART))) %>%
   select(-contains(c("0", "ra", "PROGp"), ignore.case=FALSE))
 
-summary(periphrastic_preferences)
+scaled_periphrastic_preferences = widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+  mutate(INDfinal = PROGpINDfinal - pmax(PROGraINDfinal, PROG0INDfinal)) %>%
+  mutate(INDDP = PROGpINDDP - pmax(PROGraINDDP, PROG0INDfinal)) %>%
+  mutate(INDngo = PROGpINDngo - pmax(PROGraINDngo, PROG0INDfinal)) %>%
+  mutate(INDko = PROGpINDko - pmax(PROGraINDko, PROG0INDfinal)) %>%
+  mutate(NEG = PROGpNEG - pmax(PROGraNEG, PROG0NEG)) %>%
+  mutate(REL = PROGpREL - pmax(PROGraREL, PROG0REL)) %>%
+  mutate(PART = PROGpPART - pmax(PROGraPART, PROG0PART)) %>%
+  mutate(AVG = mean(c(INDfinal, INDDP, INDngo, INDko, NEG, REL, PART))) %>%
+  select(-contains(c("0", "ra", "PROGp"), ignore.case=FALSE))
 
-summary(lm(AVG ~ AGE * GENDER * NORTHWEST, data = periphrastic_preferences))
-summary(lm(INDfinal ~ AGE * GENDER * NORTHWEST, data = periphrastic_preferences))
-summary(lm(INDDP ~ AGE * GENDER * NORTHWEST, data = periphrastic_preferences))
-summary(lm(INDngo ~ AGE * GENDER * NORTHWEST, data = periphrastic_preferences))
-summary(lm(INDko ~ AGE * GENDER * NORTHWEST, data = periphrastic_preferences))
-summary(lm(NEG ~ AGE * GENDER * NORTHWEST, data = periphrastic_preferences))
-summary(lm(REL ~ AGE * GENDER * NORTHWEST, data = periphrastic_preferences))
-summary(lm(PART ~ AGE * GENDER * NORTHWEST, data = periphrastic_preferences))
+summary(periphrastic_preferences)
+summary(scaled_periphrastic_preferences)
+
+summary(lm(AVG ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
+summary(lm(INDfinal ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
+summary(lm(INDDP ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
+summary(lm(INDngo ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
+summary(lm(INDko ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
+summary(lm(NEG ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
+summary(lm(REL ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
+summary(lm(PART ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
+
+# AWARENESS
+
+df_raw %>%
+  ggplot(aes(SCALED_WOULD_YOU_SAY_THIS, SCALED_AWARENESS))+geom_jitter()+geom_smooth(method="lm")
+
+proportion_awareness_above_use = data.frame()
+for (condition_type in df_raw %>%
+     mutate(TYPE = gsub("1|2", "", CONDITION_NAME)) %>%
+     pull(TYPE) %>% unique()) {
+  proportion_awareness_above_use = rbind(proportion_awareness_above_use, c(condition_type,
+          df_raw %>% filter(
+            grepl(condition_type, CONDITION_NAME, fixed=TRUE),
+            SCALED_AWARENESS >= SCALED_WOULD_YOU_SAY_THIS) %>%
+            nrow() /
+            df_raw %>% filter(grepl(condition_type, CONDITION_NAME, fixed=TRUE)) %>% nrow()))
+}
+colnames(proportion_awareness_above_use) <- c("CONDITION", "PROPORTION")
+proportion_awareness_above_use %>%
+  mutate(PROPORTION = as.double(PROPORTION)) %>%
+  ggplot(aes(PROPORTION))+geom_histogram(bin_width=0.1)
+  
+summary(
+  lmer(
+    SCALED_AWARENESS ~ SCALED_WOULD_YOU_SAY_THIS + (1 | RESPONDENT_ID),
+    data=df_raw
+  )
+)
+
+df_raw %>%
+  filter(TAM == "PROG" | TAM == "FUT") %>%
+  filter(FRAME == "NEG", MORPHEME == "ra") %>%
+  mutate(SCALED_AWARENESS = as.double(SCALED_AWARENESS)) %>%
+  pull(SCALED_AWARENESS) %>%
+  na.omit() %>%
+  mean()
+
+df_raw %>%
+  filter(TAM == "PROG" | TAM == "FUT") %>%
+  filter(FRAME == "REL", MORPHEME == "ra") %>%
+  mutate(SCALED_AWARENESS = as.double(SCALED_AWARENESS)) %>%
+  pull(SCALED_AWARENESS) %>%
+  na.omit() %>%
+  mean()
+
+df_raw %>%
+  filter(TAM == "PROG" | TAM == "FUT") %>%
+  filter(FRAME == "PART", MORPHEME == "ra") %>%
+  mutate(SCALED_AWARENESS = as.double(SCALED_AWARENESS)) %>%
+  pull(SCALED_AWARENESS) %>%
+  na.omit() %>%
+  mean()
