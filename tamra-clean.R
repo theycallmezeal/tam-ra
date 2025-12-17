@@ -433,7 +433,7 @@ ggarrange(
                                 ifelse(AGE > 32, "other women",
                                        ifelse(NORTHWEST_DIALECT == "Elsewhere", "other young women", "young women users of NW dialects")))) %>%
     ggplot(aes(HABraINDngo, HAB0INDngo,color=DEMOGRAPHIC))+geom_jitter(width=0.1, height=0.1)+
-    labs(title="unscaled", x="ra-", y="ra-less verb", color="demographic")+
+    labs(title="unscaled", x="ra-", y="ra-less verb", color="Demographic")+
     theme(plot.title = element_text(hjust = 0.5))+
     theme(legend.position="none")+
     scale_shape_manual(values=c(15,16,17,18))+
@@ -448,7 +448,7 @@ ggarrange(
                                 ifelse(AGE > 32, "other women",
                                        ifelse(NORTHWEST_DIALECT == "Elsewhere", "other young women", "young women users of NW dialects")))) %>%
     ggplot(aes(HABraINDngo, HAB0INDngo,color=DEMOGRAPHIC))+geom_jitter(width=0.1, height=0.1)+
-    labs(title="scaled", x="ra-", y="ra-less verb", color="demographic")+
+    labs(title="scaled", x="ra-", y="ra-less verb", color="Demographic")+
     theme(plot.title = element_text(hjust = 0.5))+
     scale_shape_manual(values=c(15,16,17,18))+
     geom_vline(xintercept=0)+geom_hline(yintercept=0)+
@@ -599,9 +599,9 @@ rbind(
 ggplot(aes(AGE, SCORE, color=GENDER))+
 facet_grid(
   factor(TYPE, levels=c("ra", "0", "mps")) ~ factor(FRAME, levels=c("NEG", "REL", "PART")),
-  labeller=as_labeller(c(`NEG`="negation", `REL`="relativization", `PART`="participial", `ra`="scaled acceptance score of verb with ra-", `0`="scaled acceptance score of ra-less verb", `mps`="post-scaling morphological preference score")))+
+  labeller=as_labeller(c(`NEG`="negation", `REL`="relativization", `PART`="participial", `ra`="scaled acceptance score\nof verb with ra-", `0`="scaled acceptance score\nof ra-less verb", `mps`="post-scaling morphological\npreference score")))+
 geom_jitter()+
-ylab(NULL)+xlab("Age")+labs(color="Gender")
+ylab(NULL)+xlab("age")+labs(color="Gender")
 
 # SECTION 5.3.7 IMPLICATIONAL HIERARCHIES?
 
