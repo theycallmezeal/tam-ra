@@ -603,7 +603,7 @@ facet_grid(
 geom_jitter()+
 ylab(NULL)+xlab("Age")+labs(color="Gender")
 
-# does acceptance of negated ra- imply acceptance of rel / part or vice versa?
+# SECTION 5.3.7 IMPLICATIONAL HIERARCHIES?
 
 neg_rel_part = rbind(
   widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
@@ -623,24 +623,45 @@ neg_rel_part = rbind(
     mutate(TAM = "FUT")
 )
 
-neg_rel_part %>%
-  pivot_longer(names_to = "TYPE", values_to = "SCORE", cols=c("PART", "REL")) %>%
-  ggplot(
-    aes(NEG, SCORE, color=TAM)
-  ) + geom_jitter(width = 0.05, height = 0.05) + geom_smooth(method="lm", se=FALSE) +
-  facet_wrap(~ factor(TYPE, levels=c("REL", "PART")), labeller=as_labeller(c(`NEG`="negated", `REL`="relativized", `PART`="participial"))) +
-  xlab("negation") + ylab(NULL)
+ggarrange(
+  neg_rel_part %>%
+    ggplot(
+      aes(REL, NEG, color=TAM)
+    ) + geom_jitter() + 
+    geom_smooth(method="lm", se=FALSE) +
+    xlab("relativization") + ylab("negation")+
+    xlim(-1.5, 1.5)+ylim(-1.5, 1.5),
+  
+  neg_rel_part %>%
+    ggplot(
+      aes(PART, NEG, color=TAM)
+    ) + geom_jitter() +
+    xlab("participial") + ylab("negation")+
+    xlim(-1.5, 1.5)+ylim(-1.5, 1.5),
+  
+  neg_rel_part %>%
+    ggplot(
+      aes(REL, PART, color=TAM)
+    ) + geom_jitter() +
+    xlab("relativization") + ylab("participial")+
+    xlim(-1.5, 1.5)+ylim(-1.5, 1.5),
+  
+  ncol=3,
+  common.legend=TRUE,
+  legend="bottom"
+)
+
 
 summary(
-  lmer(REL ~ NEG * TAM + (1 | RESPONDENT_ID),
+  lmer(NEG ~ REL * TAM + (1 | RESPONDENT_ID),
        data = neg_rel_part))
 
 summary(
-  lmer(PART ~ NEG * TAM + (1 | RESPONDENT_ID),
+  lmer(NEG ~ PART * TAM + (1 | RESPONDENT_ID),
        data = neg_rel_part))
 
 summary(
-  lmer(REL ~ PART * TAM + (1 | RESPONDENT_ID),
+  lmer(PART ~ REL * TAM + (1 | RESPONDENT_ID),
        data = neg_rel_part))
 
 neg_rel_part %>%
