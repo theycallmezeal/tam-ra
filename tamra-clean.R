@@ -269,6 +269,16 @@ for (morpheme in c("ra", "0")) {
     }
 }
 
+for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
+  print(c(frame,
+          df_mps %>%
+            filter(IMPROVEMENT > 0, TAM == "PROG" | TAM == "FUT", FRAME == frame) %>%
+            select(RESPONDENT_ID) %>% unique() %>% nrow()
+          )
+        )
+}
+
+
 # how many people accept? PROG accepters, FUT accepters
 for (morpheme in c("ra", "0")) {
   for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
@@ -294,6 +304,24 @@ for (morpheme in c("ra", "0")) {
     )
     )
   }
+}
+
+for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
+  print(c(frame,
+          df_mps %>%
+            filter(IMPROVEMENT > 0, TAM == "PROG", FRAME == frame, RESPONDENT_ID %in% accepts_prog) %>%
+            select(RESPONDENT_ID) %>% unique() %>% nrow()
+  )
+  )
+}
+
+for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
+  print(c(frame,
+          df_mps %>%
+            filter(IMPROVEMENT > 0, TAM == "FUT", FRAME == frame, RESPONDENT_ID %in% accepts_fut) %>%
+            select(RESPONDENT_ID) %>% unique() %>% nrow()
+  )
+  )
 }
 
 # how many people accept across the board?
