@@ -257,29 +257,42 @@ df_mps %>%
 # how many people accept at all in either TAM?
 for (morpheme in c("ra", "0")) {
     for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
-      print(c(morpheme, frame, df_raw %>%
-        filter(
-          MORPHEME == morpheme, FRAME == frame, TAM == "PROG" | TAM == "FUT",
-          SCALED_WOULD_YOU_SAY_THIS > 0
-          ) %>%
-        select(RESPONDENT_ID) %>%
-        unique() %>%
-        nrow()))
+      print(c(morpheme, frame,
+              widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+                filter(
+                  !!sym(paste("PROG", morpheme, frame, sep="")) > 0 |
+                  !!sym(paste("FUT", morpheme, frame, sep="")) > 0
+                  ) %>%
+                select(RESPONDENT_ID) %>% unique() %>% nrow()
+              )
+            )
     }
 }
 
 # how many people accept? PROG accepters, FUT accepters
 for (morpheme in c("ra", "0")) {
-  for (tam in c("PROG", "FUT")) {
-    for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
-      print(c(morpheme, tam, frame, df_raw %>%
-                filter(RESPONDENT_ID %in% if (tam == "PROG") accepts_prog else accepts_fut) %>%
-                filter(MORPHEME == morpheme, FRAME == frame, TAM == tam) %>%
-                filter(SCALED_WOULD_YOU_SAY_THIS > 0) %>%
-                select(RESPONDENT_ID) %>%
-                unique() %>%
-                nrow()))
-    }
+  for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
+    print(c(morpheme, frame,
+            widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+              filter(
+                !!sym(paste("PROG", morpheme, frame, sep="")) > 0
+              ) %>%
+              select(RESPONDENT_ID) %>% unique() %>% nrow()
+    )
+    )
+  }
+}
+
+for (morpheme in c("ra", "0")) {
+  for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
+    print(c(morpheme, frame,
+            widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+              filter(
+                !!sym(paste("FUT", morpheme, frame, sep="")) > 0
+              ) %>%
+              select(RESPONDENT_ID) %>% unique() %>% nrow()
+    )
+    )
   }
 }
 
