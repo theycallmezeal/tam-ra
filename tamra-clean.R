@@ -429,33 +429,33 @@ widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
 ggarrange(
   widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
     na.omit() %>%
-    mutate(DEMOGRAPHIC = ifelse(GENDER == "male", "Men",
-                                ifelse(AGE > 32, "Other women",
-                                       ifelse(NORTHWEST_DIALECT == "Elsewhere", "Other young women", "Young women users of NW dialects")))) %>%
+    mutate(DEMOGRAPHIC = ifelse(GENDER == "male", "men",
+                                ifelse(AGE > 32, "other women",
+                                       ifelse(NORTHWEST_DIALECT == "Elsewhere", "other young women", "young women users of NW dialects")))) %>%
     ggplot(aes(HABraINDngo, HAB0INDngo,color=DEMOGRAPHIC))+geom_jitter(width=0.1, height=0.1)+
-    labs(title="unscaled", x="ra-", y="ra-less verb", color="Demographic")+
+    labs(title="unscaled", x="ra-", y="ra-less verb", color="demographic")+
     theme(plot.title = element_text(hjust = 0.5))+
     theme(legend.position="none")+
     scale_shape_manual(values=c(15,16,17,18))+
-    scale_color_discrete(breaks=c("Young women users of NW dialects",
-                                  "Other young women",
-                                  "Other women",
-                                  "Men")),
+    scale_color_discrete(breaks=c("young women users of NW dialects",
+                                  "other young women",
+                                  "other women",
+                                  "men")),
   
   widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
     na.omit() %>%
-    mutate(DEMOGRAPHIC = ifelse(GENDER == "male", "Men",
-                                ifelse(AGE > 32, "Other women",
-                                       ifelse(NORTHWEST_DIALECT == "Elsewhere", "Other young women", "Young women users of NW dialects")))) %>%
+    mutate(DEMOGRAPHIC = ifelse(GENDER == "male", "men",
+                                ifelse(AGE > 32, "other women",
+                                       ifelse(NORTHWEST_DIALECT == "Elsewhere", "other young women", "young women users of NW dialects")))) %>%
     ggplot(aes(HABraINDngo, HAB0INDngo,color=DEMOGRAPHIC))+geom_jitter(width=0.1, height=0.1)+
-    labs(title="scaled", x="ra-", y="ra-less verb", color="Demographic")+
+    labs(title="scaled", x="ra-", y="ra-less verb", color="demographic")+
     theme(plot.title = element_text(hjust = 0.5))+
     scale_shape_manual(values=c(15,16,17,18))+
     geom_vline(xintercept=0)+geom_hline(yintercept=0)+
-    scale_color_discrete(breaks=c("Young women users of NW dialects",
-                                  "Other young women",
-                                  "Other women",
-                                  "Men")),
+    scale_color_discrete(breaks=c("young women users of NW dialects",
+                                  "other young women",
+                                  "other women",
+                                  "men")),
   
   ncol=2, common.legend = TRUE, legend="bottom"
 )
