@@ -287,6 +287,7 @@ for (morpheme in c("ra", "0")) {
               filter(
                 !!sym(paste("PROG", morpheme, frame, sep="")) > 0
               ) %>%
+              filter(RESPONDENT_ID %in% accepts_prog) %>%
               select(RESPONDENT_ID) %>% unique() %>% nrow()
     )
     )
@@ -300,6 +301,7 @@ for (morpheme in c("ra", "0")) {
               filter(
                 !!sym(paste("FUT", morpheme, frame, sep="")) > 0
               ) %>%
+              filter(RESPONDENT_ID %in% accepts_fut) %>%
               select(RESPONDENT_ID) %>% unique() %>% nrow()
     )
     )

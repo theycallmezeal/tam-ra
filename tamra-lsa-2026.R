@@ -3,6 +3,7 @@ library(factoextra)
 library(lmerTest)
 library(gridExtra)
 library(ggpubr)
+library(showtext)
 
 df_raw <- read.csv(file.choose(), header=T) # select transformed_data.csv
 
@@ -147,3 +148,75 @@ df_raw$ACCEPTS_FUT[df_raw$RESPONDENT_ID %in% accepts_fut] <- "True"
 df_mps$ACCEPTS_FUT <- "False"
 df_mps$ACCEPTS_FUT[df_mps$RESPONDENT_ID %in% accepts_fut] <- "True"
 
+font_add_google("Inter")
+
+# negation: young women are innovative
+
+neg_graph_data = df_mps %>%
+  filter(
+    (TAM == "PROG" & RESPONDENT_ID %in% accepts_prog) |
+      (TAM == "FUT" & RESPONDENT_ID %in% accepts_fut),
+    FRAME == "NEG"
+  )
+
+neg_graph_data %>%
+  ggplot(aes(AGE, SCALED_IMPROVEMENT, color=GENDER))+
+  geom_jitter()+
+  geom_smooth(method="lm", data=neg_graph_data %>% filter(GENDER == "female"))+
+  labs(x="age", y="scaled morphological preference score", color="gender")+
+  theme(text=element_text(family="Inter"))
+
+df_mps %>%
+  filter(
+    (TAM == "PROG" & RESPONDENT_ID %in% accepts_prog) |
+      (TAM == "FUT" & RESPONDENT_ID %in% accepts_fut),
+    FRAME %in% c("REL", "PART")
+  ) %>%
+  ggplot(aes(AGE, SCALED_IMPROVEMENT, color=GENDER))+
+  geom_jitter()+
+  facet_wrap(~ factor(FRAME, levels=c("REL", "PART")))+
+  labs(x="age", y="scaled morphological preference score", color="gender")+
+  theme(text=element_text(family="Inter"))
+
+# rel, part: nothing
+
+rbind(
+  widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+    filter(RESPONDENT_ID %in% accepts_prog) %>%
+    select(PROGraNEG, PROGraREL, PROGraPART) %>%
+    rename(NEG = PROGraNEG) %>%
+    rename(REL = PROGraREL) %>%
+    rename(PART = PROGraPART) %>%
+    mutate(TAM = "PROG"),
+  
+  widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+    filter(RESPONDENT_ID %in% accepts_fut) %>%
+    select(FUTraNEG, FUTraREL, FUTraPART) %>%
+    rename(NEG = FUTraNEG) %>%
+    rename(REL = FUTraREL) %>%
+    rename(PART = FUTraPART) %>%
+    mutate(TAM = "FUT")
+) %>%
+  ggplot(
+    aes(REL, NEG, color=TAM)
+  ) + geom_jitter() + 
+  geom_smooth(method="lm", se=FALSE) +
+  xlab("relativization") + ylab("negation")
+
+# ngo: nw young women
+
+widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+  na.omit() %>%
+  mutate(DEMOGRAPHIC = ifelse(GENDER == "male", "men",
+                              ifelse(AGE > 32, "other women",
+                                     ifelse(NORTHWEST_DIALECT == "Elsewhere", "other young women", "young women users of NW dialects")))) %>%
+  ggplot(aes(HABraINDngo, HAB0INDngo,color=DEMOGRAPHIC))+geom_jitter(width=0.1, height=0.1)+
+  labs(x="scaled acceptance, ra-", y="scaled acceptance, ra-less verb", color="demographic")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_shape_manual(values=c(15,16,17,18))+
+  geom_vline(xintercept=0)+geom_hline(yintercept=0)+
+  scale_color_discrete(breaks=c("young women users of NW dialects",
+                                "other young women",
+                                "other women",
+                                "men"))+
+  theme(text=element_text(family="Inter"))
