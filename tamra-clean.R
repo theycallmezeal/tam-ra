@@ -473,6 +473,9 @@ summary(lm(HAB0INDngo ~ AGE * GENDER * NORTHWEST_DIALECT,
 summary(lm(SCALED_IMPROVEMENT ~ AGE * GENDER * NORTHWEST,
            data=df_mps %>% filter(CONDITION == "HABINDngo")))
 
+widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
+  na.omit() %>%
+  ggplot(aes(AGE, HABraINDngo, color=GENDER, linetype=NORTHWEST_DIALECT))+geom_jitter()+geom_smooth(method='lm',se=FALSE)
 
 # SECTION 5.3.6 ACCEPTABILITY OF PROG/FUT ra- across SYNTACTIC FRAMES
 
@@ -481,7 +484,7 @@ summary(lm(SCALED_IMPROVEMENT ~ AGE * GENDER * NORTHWEST,
 summary(
   lmer(
     SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
+    ~ AGE * GENDER + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
     data=df_raw %>%
       filter(FRAME %in% c("NEG"),
              ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
@@ -493,7 +496,7 @@ summary(
 summary(
   lmer(
     SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
+    ~ AGE * GENDER + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
     data=df_raw %>%
       filter(FRAME %in% c("NEG"),
              ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
@@ -505,7 +508,7 @@ summary(
 summary(
   lmer(
     SCALED_IMPROVEMENT
-    ~ AGE * GENDER * NORTHWEST + TAM + (1 | RESPONDENT_ID),
+    ~ AGE * GENDER + TAM + (1 | RESPONDENT_ID),
     data=df_mps %>%
       filter(FRAME %in% c("NEG"),
              ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")))
@@ -517,7 +520,7 @@ summary(
 summary(
   lmer(
     SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
+    ~ AGE * GENDER + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
     data=df_raw %>%
       filter(FRAME %in% c("REL"),
              ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
@@ -529,7 +532,7 @@ summary(
 summary(
   lmer(
     SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
+    ~ AGE * GENDER + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
     data=df_raw %>%
       filter(FRAME %in% c("REL"),
              ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
@@ -537,11 +540,29 @@ summary(
   )
 )
 
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * MORPHEME + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
+    data=df_raw %>%
+      filter(((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")), MORPHEME %in% c("ra", "0"))
+  )
+)
+
+summary(
+  lmer(
+    SCALED_IMPROVEMENT
+    ~ AGE * GENDER + (1 | CONDITION) + (1 | RESPONDENT_ID),
+    data=df_mps %>%
+      filter(((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")))
+  )
+)
+
 ###mps
 summary(
   lmer(
     SCALED_IMPROVEMENT
-    ~ AGE * GENDER * NORTHWEST + TAM + (1 | RESPONDENT_ID),
+    ~ AGE * GENDER + TAM + (1 | RESPONDENT_ID),
     data=df_mps %>%
       filter(FRAME %in% c("REL"),
              ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")))
