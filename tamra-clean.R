@@ -363,15 +363,6 @@ grid.arrange(
   ncol=2
 )
 
-summary(
-  lmer(
-    SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * TAM * MORPHEME + GENDER * TAM * MORPHEME + NORTHWEST_DIALECT * TAM * MORPHEME + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(TAM %in% c("PROG", "FUT"), FRAME == "INDfinal")
-  )
-)
-
 # are PROG and FUT comparable?
 
 prog_fut_responses = widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
@@ -431,51 +422,25 @@ widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
 ggarrange(
   widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
     na.omit() %>%
-    mutate(DEMOGRAPHIC = ifelse(GENDER == "male", "men",
-                                ifelse(AGE > 32, "other women",
-                                       ifelse(NORTHWEST_DIALECT == "Elsewhere", "other young women", "young women users of NW dialects")))) %>%
-    ggplot(aes(HABraINDngo, HAB0INDngo,color=DEMOGRAPHIC))+geom_jitter(width=0.1, height=0.1)+
-    labs(title="unscaled", x="ra-", y="ra-less verb", color="Demographic")+
+    ggplot(aes(HABraINDngo, HAB0INDngo))+geom_jitter(width=0.1, height=0.1)+
+    labs(title="unscaled", x="ra-", y="ra-less verb")+
     theme(plot.title = element_text(hjust = 0.5))+
-    theme(legend.position="none")+
-    scale_shape_manual(values=c(15,16,17,18))+
-    scale_color_discrete(breaks=c("young women users of NW dialects",
-                                  "other young women",
-                                  "other women",
-                                  "men")),
+    theme(legend.position="none"),
   
   widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
     na.omit() %>%
-    mutate(DEMOGRAPHIC = ifelse(GENDER == "male", "men",
-                                ifelse(AGE > 32, "other women",
-                                       ifelse(NORTHWEST_DIALECT == "Elsewhere", "other young women", "young women users of NW dialects")))) %>%
-    ggplot(aes(HABraINDngo, HAB0INDngo,color=DEMOGRAPHIC))+geom_jitter(width=0.1, height=0.1)+
-    labs(title="scaled", x="ra-", y="ra-less verb", color="Demographic")+
+    ggplot(aes(HABraINDngo, HAB0INDngo))+geom_jitter(width=0.1, height=0.1)+
+    labs(title="scaled", x="ra-", y="ra-less verb")+
     theme(plot.title = element_text(hjust = 0.5))+
     scale_shape_manual(values=c(15,16,17,18))+
-    geom_vline(xintercept=0)+geom_hline(yintercept=0)+
-    scale_color_discrete(breaks=c("young women users of NW dialects",
-                                  "other young women",
-                                  "other women",
-                                  "men")),
+    geom_vline(xintercept=0)+geom_hline(yintercept=0),
   
   ncol=2, common.legend = TRUE, legend="bottom"
 )
 
-summary(lm(HABraINDngo ~ AGE * GENDER * NORTHWEST,
-           data=widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS")))
-summary(lm(HAB0INDngo ~ AGE * GENDER * NORTHWEST,
-           data=widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS")))
-summary(lm(HABraINDngo ~ AGE * GENDER * NORTHWEST_DIALECT,
-           data=widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS")))
-summary(lm(HAB0INDngo ~ AGE * GENDER * NORTHWEST_DIALECT,
-           data=widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS")))
-summary(lm(SCALED_IMPROVEMENT ~ AGE * GENDER * NORTHWEST,
-           data=df_mps %>% filter(CONDITION == "HABINDngo")))
-
-widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
-  na.omit() %>%
-  ggplot(aes(AGE, HABraINDngo, color=GENDER, linetype=NORTHWEST_DIALECT))+geom_jitter()+geom_smooth(method='lm',se=FALSE)
+summary(lm(WOULD_YOU_SAY_THIS ~ AGE * GENDER * NORTHWEST_DIALECT * MORPHEME,
+         data=df_raw %>%
+           filter(TAM=="HAB", FRAME=="IND")
 
 # SECTION 5.3.6 ACCEPTABILITY OF PROG/FUT ra- across SYNTACTIC FRAMES
 
