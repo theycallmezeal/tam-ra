@@ -595,39 +595,17 @@ for (tam in c("PROG", "FUT")) {
 
 # SECTION 5.3.8 PERIPHRASTICS
 
-periphrastic_preferences = widen(df_raw, "WOULD_YOU_SAY_THIS") %>%
-  mutate(INDfinal = PROGpINDfinal - pmax(PROGraINDfinal, PROG0INDfinal)) %>%
-  mutate(INDDP = PROGpINDDP - pmax(PROGraINDDP, PROG0INDfinal)) %>%
-  mutate(INDngo = PROGpINDngo - pmax(PROGraINDngo, PROG0INDfinal)) %>%
-  mutate(INDko = PROGpINDko - pmax(PROGraINDko, PROG0INDfinal)) %>%
-  mutate(NEG = PROGpNEG - pmax(PROGraNEG, PROG0NEG)) %>%
-  mutate(REL = PROGpREL - pmax(PROGraREL, PROG0REL)) %>%
-  mutate(PART = PROGpPART - pmax(PROGraPART, PROG0PART)) %>%
-  mutate(AVG = mean(c(INDfinal, INDDP, INDngo, INDko, NEG, REL, PART))) %>%
-  select(-contains(c("0", "ra", "PROGp"), ignore.case=FALSE))
-
-scaled_periphrastic_preferences = widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
-  mutate(INDfinal = PROGpINDfinal - pmax(PROGraINDfinal, PROG0INDfinal)) %>%
-  mutate(INDDP = PROGpINDDP - pmax(PROGraINDDP, PROG0INDfinal)) %>%
-  mutate(INDngo = PROGpINDngo - pmax(PROGraINDngo, PROG0INDfinal)) %>%
-  mutate(INDko = PROGpINDko - pmax(PROGraINDko, PROG0INDfinal)) %>%
-  mutate(NEG = PROGpNEG - pmax(PROGraNEG, PROG0NEG)) %>%
-  mutate(REL = PROGpREL - pmax(PROGraREL, PROG0REL)) %>%
-  mutate(PART = PROGpPART - pmax(PROGraPART, PROG0PART)) %>%
-  mutate(AVG = mean(c(INDfinal, INDDP, INDngo, INDko, NEG, REL, PART))) %>%
-  select(-contains(c("0", "ra", "PROGp"), ignore.case=FALSE))
-
-summary(periphrastic_preferences)
-summary(scaled_periphrastic_preferences)
-
-summary(lm(AVG ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
-summary(lm(INDfinal ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
-summary(lm(INDDP ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
-summary(lm(INDngo ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
-summary(lm(INDko ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
-summary(lm(NEG ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
-summary(lm(REL ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
-summary(lm(PART ~ AGE * GENDER * NORTHWEST, data = scaled_periphrastic_preferences))
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST * PERIPHRASTIC + (1 | RESPONDENT_ID) + (1 | CONDITION_NAME),
+    data = df_raw %>%
+      filter(TAM == "PROG") %>%
+      select(CONDITION_NAME, TAM, MORPHEME, FRAME, SCALED_WOULD_YOU_SAY_THIS,
+             RESPONDENT_ID, AGE, GENDER, NORTHWEST, NORTHWEST_DIALECT) %>%
+      mutate(PERIPHRASTIC = (MORPHEME == 'p'))
+  )
+)
 
 # SECTION 6.2.1 NEGATION AS THE SOLE ENVIRONMENT FOR CHANGE: SEGMENTAL DISTINCTIVENESS?
 
