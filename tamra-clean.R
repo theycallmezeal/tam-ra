@@ -347,6 +347,18 @@ widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
     FUTraNEG > 0, FUTraREL > 0, FUTraPART > 0
   )
   
+# NEW SECTION: GENERAL TRENDS
+
+summary(
+  lmer(
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * MORPHEME + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
+    data = df_raw %>%
+      filter(
+        ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
+        MORPHEME %in% c("ra", "0"))
+  )
+)
 
 # SECTION 5.3.4 MEANING OF PROG/FUT RA-
 
@@ -440,133 +452,40 @@ ggarrange(
 
 summary(lm(WOULD_YOU_SAY_THIS ~ AGE * GENDER * NORTHWEST_DIALECT * MORPHEME,
          data=df_raw %>%
-           filter(TAM=="HAB", FRAME=="IND")
+           filter(TAM=="HAB", FRAME=="IND")))
 
 # SECTION 5.3.6 ACCEPTABILITY OF PROG/FUT ra- across SYNTACTIC FRAMES
-
-## negation
-### ra
-summary(
-  lmer(
-    SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(FRAME %in% c("NEG"),
-             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
-             MORPHEME == "ra")
-  )
-)
-
-### 0
-summary(
-  lmer(
-    SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(FRAME %in% c("NEG"),
-             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
-             MORPHEME == "0")
-  )
-)
-
-###mps
-summary(
-  lmer(
-    SCALED_IMPROVEMENT
-    ~ AGE * GENDER + TAM + (1 | RESPONDENT_ID),
-    data=df_mps %>%
-      filter(FRAME %in% c("NEG"),
-             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")))
-  )
-)
-
-## relativization
-### ra
-summary(
-  lmer(
-    SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(FRAME %in% c("REL"),
-             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
-             MORPHEME == "ra")
-  )
-)
-
-### 0
-summary(
-  lmer(
-    SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(FRAME %in% c("REL"),
-             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
-             MORPHEME == "0")
-  )
-)
 
 summary(
   lmer(
     SCALED_WOULD_YOU_SAY_THIS
     ~ AGE * GENDER * MORPHEME + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
     data=df_raw %>%
-      filter(((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")), MORPHEME %in% c("ra", "0"))
+      filter(FRAME %in% c("NEG"),
+             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
+             MORPHEME != "p")
   )
 )
 
 summary(
   lmer(
-    SCALED_IMPROVEMENT
-    ~ AGE * GENDER + (1 | CONDITION) + (1 | RESPONDENT_ID),
-    data=df_mps %>%
-      filter(((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")))
-  )
-)
-
-###mps
-summary(
-  lmer(
-    SCALED_IMPROVEMENT
-    ~ AGE * GENDER + TAM + (1 | RESPONDENT_ID),
-    data=df_mps %>%
+    SCALED_WOULD_YOU_SAY_THIS
+    ~ AGE * GENDER * NORTHWEST * MORPHEME + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
+    data=df_raw %>%
       filter(FRAME %in% c("REL"),
-             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")))
+             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
+             MORPHEME != "p")
   )
 )
 
-## participial
-### ra
 summary(
   lmer(
     SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
+    ~ AGE * GENDER * NORTHWEST * MORPHEME + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
     data=df_raw %>%
       filter(FRAME %in% c("PART"),
              ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
-             MORPHEME == "ra")
-  )
-)
-
-### 0
-summary(
-  lmer(
-    SCALED_WOULD_YOU_SAY_THIS
-    ~ AGE * GENDER * NORTHWEST + TAM + (1 | CONDITION_NAME) + (1 | RESPONDENT_ID),
-    data=df_raw %>%
-      filter(FRAME %in% c("PART"),
-             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")),
-             MORPHEME == "0")
-  )
-)
-
-###mps
-summary(
-  lmer(
-    SCALED_IMPROVEMENT
-    ~ AGE * GENDER * NORTHWEST + TAM + (1 | RESPONDENT_ID),
-    data=df_mps %>%
-      filter(FRAME %in% c("PART"),
-             ((TAM == "PROG" & ACCEPTS_PROG == "True") | (TAM == "FUT" & ACCEPTS_FUT == "True")))
+             MORPHEME != "p")
   )
 )
 
