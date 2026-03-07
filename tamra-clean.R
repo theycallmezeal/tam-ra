@@ -72,61 +72,6 @@ widen <- function(df, values_from) {
     select(-contains(c("1", "2"))))
 }
 
-# morphological preference score
-mps <- function(df, values_from) {
-  result = widen(df, values_from) %>%
-           mutate(HABINDDP = HABraINDDP - HAB0INDDP) %>%
-           mutate(HABINDfinal = HABraINDfinal - HAB0INDfinal) %>%
-           mutate(HABINDngo = HABraINDngo - HAB0INDngo) %>%
-           mutate(HABINDko = HABraINDko - HAB0INDko) %>%
-           mutate(HABNEG = HABraNEG - HAB0NEG) %>%
-           mutate(HABREL = HABraREL - HAB0REL) %>%
-           mutate(HABPART = HABraPART - HAB0PART) %>%
-           mutate(PROGINDDP = PROGraINDDP - PROG0INDDP) %>%
-           mutate(PROGINDfinal = PROGraINDfinal - PROG0INDfinal) %>%
-           mutate(PROGINDngo = PROGraINDngo - PROG0INDngo) %>%
-           mutate(PROGINDko = PROGraINDko - PROG0INDko) %>%
-           mutate(PROGNEG = PROGraNEG - PROG0NEG) %>%
-           mutate(PROGREL = PROGraREL - PROG0REL) %>%
-           mutate(PROGPART = PROGraPART - PROG0PART) %>% 
-           mutate(FUTINDDP = FUTraINDDP - FUT0INDDP) %>%
-           mutate(FUTINDfinal = FUTraINDfinal - FUT0INDfinal) %>%
-           mutate(FUTINDngo = FUTraINDngo - FUT0INDngo) %>%
-           mutate(FUTINDko = FUTraINDko - FUT0INDko) %>%
-           mutate(FUTNEG = FUTraNEG - FUT0NEG) %>%
-           mutate(FUTREL = FUTraREL - FUT0REL) %>%
-           mutate(FUTPART = FUTraPART - FUT0PART) %>%
-           mutate(PERIPHRASTICINDDP = PROGpINDDP - pmax(PROGraINDDP, PROG0INDDP)) %>%
-           mutate(PERIPHRASTICINDfinal = PROGpINDfinal - pmax(PROGraINDfinal, PROG0INDfinal)) %>%
-           mutate(PERIPHRASTICINDngo = PROGpINDngo - pmax(PROGraINDngo, PROG0INDngo)) %>%
-           mutate(PERIPHRASTICINDko = PROGpINDko - pmax(PROGraINDko, PROG0INDko)) %>%
-           mutate(PERIPHRASTICNEG = PROGpNEG - pmax(PROGraNEG, PROG0NEG)) %>%
-           mutate(PERIPHRASTICREL = PROGpREL - pmax(PROGraREL, PROG0REL)) %>%
-           mutate(PERIPHRASTICPART = PROGpPART - pmax(PROGraPART, PROG0PART)) %>%
-           select(-contains(c("0", "ra", "PROGp"), ignore.case=FALSE)) %>%
-           pivot_longer(!all_of(c("RESPONDENT_ID", "AGE", "GENDER", "REGION",
-                                  "NORTHWEST", "NORTHWEST_DIALECT", "AGERANGE", "GENDERREGION")),
-                        names_to="CONDITION", values_to="IMPROVEMENT")
-  
-  result$TAM <- "HAB"
-  result$TAM[grepl("PROG", result$CONDITION)] <- "PROG"
-  result$TAM[grepl("PERIPHRASTIC", result$CONDITION)] <- "PERIPHRASTIC"
-  result$TAM[grepl("FUT", result$CONDITION)] <- "FUT"
-  
-  result$FRAME <- "INDDP"
-  result$FRAME[grepl("INDfinal", result$CONDITION)] <- "INDfinal"
-  result$FRAME[grepl("INDngo", result$CONDITION)] <- "INDngo"
-  result$FRAME[grepl("INDko", result$CONDITION)] <- "INDko"
-  result$FRAME[grepl("NEG", result$CONDITION)] <- "NEG"
-  result$FRAME[grepl("REL", result$CONDITION)] <- "REL"
-  result$FRAME[grepl("PART", result$CONDITION)] <- "PART"
-  
-  return(result)
-}
-
-df_mps = mps(df_raw, "WOULD_YOU_SAY_THIS")
-df_mps$SCALED_IMPROVEMENT = mps(df_raw, "SCALED_WOULD_YOU_SAY_THIS")$IMPROVEMENT
-
 # tag respondents based on whether they accept prog or fut
 
 accepts_prog = widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
@@ -135,8 +80,6 @@ accepts_prog = widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
   unique()
 df_raw$ACCEPTS_PROG <- "False"
 df_raw$ACCEPTS_PROG[df_raw$RESPONDENT_ID %in% accepts_prog] <- "True"
-df_mps$ACCEPTS_PROG <- "False"
-df_mps$ACCEPTS_PROG[df_mps$RESPONDENT_ID %in% accepts_prog] <- "True"
   
 accepts_fut = widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
   filter(FUTraINDfinal > 0) %>%
@@ -144,8 +87,6 @@ accepts_fut = widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
   unique()
 df_raw$ACCEPTS_FUT <- "False"
 df_raw$ACCEPTS_FUT[df_raw$RESPONDENT_ID %in% accepts_fut] <- "True"
-df_mps$ACCEPTS_FUT <- "False"
-df_mps$ACCEPTS_FUT[df_mps$RESPONDENT_ID %in% accepts_fut] <- "True"
 
 # SECTION 5.3.2 OVERALL RESPONSES
 # overall responses
@@ -161,25 +102,6 @@ for (tammorpheme in c("HAB0", "HABra", "PROG0", "PROGra", "PROGp", "FUT0", "FUTr
     print(c(tammorpheme, frame, df_raw %>%
               filter(TAMMORPHEME == tammorpheme, FRAME == frame) %>%
               pull(SCALED_WOULD_YOU_SAY_THIS) %>% mean() %>% round(digits=2)))
-  }
-}
-# overall morphological preference scores
-for (tam in c("HAB", "PROG", "FUT")) {
-  for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
-    print(c(tam, frame, df_mps %>%
-              filter(TAM==tam, FRAME==frame) %>%
-              pull(IMPROVEMENT) %>%
-              mean() %>%
-              round(digits = 2)))
-  }
-}
-for (tam in c("HAB", "PROG", "FUT")) {
-  for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
-    print(c(tam, frame, df_mps %>%
-              filter(TAM==tam, FRAME==frame) %>%
-              pull(SCALED_IMPROVEMENT) %>%
-              mean() %>%
-              round(digits = 2)))
   }
 }
 
@@ -225,35 +147,6 @@ widen(df_raw, "SCALED_WOULD_YOU_SAY_THIS") %>%
   select(starts_with("FUT0") | starts_with("FUTra")) %>%
   summary()
 
-# average mps for people who accept tam readings
-df_mps %>%
-  filter(TAM=="PROG") %>%
-  select(RESPONDENT_ID, FRAME, IMPROVEMENT) %>%
-  filter(RESPONDENT_ID %in% accepts_prog) %>%
-  pivot_wider(names_from="FRAME", values_from="IMPROVEMENT") %>%
-  summary()
-
-df_mps %>%
-  filter(TAM=="PROG") %>%
-  select(RESPONDENT_ID, FRAME, SCALED_IMPROVEMENT) %>%
-  filter(RESPONDENT_ID %in% accepts_prog) %>%
-  pivot_wider(names_from="FRAME", values_from="SCALED_IMPROVEMENT") %>%
-  summary()
-
-df_mps %>%
-  filter(TAM=="FUT") %>%
-  select(RESPONDENT_ID, FRAME, IMPROVEMENT) %>%
-  filter(RESPONDENT_ID %in% accepts_prog) %>%
-  pivot_wider(names_from="FRAME", values_from="IMPROVEMENT") %>%
-  summary()
-
-df_mps %>%
-  filter(TAM=="FUT") %>%
-  select(RESPONDENT_ID, FRAME, SCALED_IMPROVEMENT) %>%
-  filter(RESPONDENT_ID %in% accepts_prog) %>%
-  pivot_wider(names_from="FRAME", values_from="SCALED_IMPROVEMENT") %>%
-  summary()
-
 # how many people accept at all in either TAM?
 for (morpheme in c("ra", "0")) {
     for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
@@ -267,15 +160,6 @@ for (morpheme in c("ra", "0")) {
               )
             )
     }
-}
-
-for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
-  print(c(frame,
-          df_mps %>%
-            filter(IMPROVEMENT > 0, TAM == "PROG" | TAM == "FUT", FRAME == frame) %>%
-            select(RESPONDENT_ID) %>% unique() %>% nrow()
-          )
-        )
 }
 
 
@@ -306,24 +190,6 @@ for (morpheme in c("ra", "0")) {
     )
     )
   }
-}
-
-for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
-  print(c(frame,
-          df_mps %>%
-            filter(IMPROVEMENT > 0, TAM == "PROG", FRAME == frame, RESPONDENT_ID %in% accepts_prog) %>%
-            select(RESPONDENT_ID) %>% unique() %>% nrow()
-  )
-  )
-}
-
-for (frame in c("INDfinal", "INDDP", "INDngo", "INDko", "NEG", "REL", "PART")) {
-  print(c(frame,
-          df_mps %>%
-            filter(IMPROVEMENT > 0, TAM == "FUT", FRAME == frame, RESPONDENT_ID %in% accepts_fut) %>%
-            select(RESPONDENT_ID) %>% unique() %>% nrow()
-  )
-  )
 }
 
 # how many people accept across the board?
@@ -488,27 +354,6 @@ summary(
              MORPHEME != "p")
   )
 )
-
-# graphs
-rbind(
-  df_raw %>%
-    filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART"), MORPHEME %in% c("ra", "0")) %>%
-    mutate(TYPE=ifelse(MORPHEME == "ra", "ra", "0")) %>%
-    select(SCALED_WOULD_YOU_SAY_THIS, AGE, GENDER, TYPE, FRAME) %>%
-    rename(SCORE = SCALED_WOULD_YOU_SAY_THIS),
-  
-  df_mps %>%
-    filter(TAM %in% c("PROG", "FUT"), FRAME %in% c("NEG", "REL", "PART")) %>%
-    mutate(TYPE="mps") %>%
-    select(SCALED_IMPROVEMENT, AGE, GENDER, TYPE, FRAME) %>%
-    rename(SCORE = SCALED_IMPROVEMENT)
-) %>%
-ggplot(aes(AGE, SCORE, color=GENDER))+
-facet_grid(
-  factor(TYPE, levels=c("ra", "0", "mps")) ~ factor(FRAME, levels=c("NEG", "REL", "PART")),
-  labeller=as_labeller(c(`NEG`="negation", `REL`="relativization", `PART`="participial", `ra`="scaled acceptance score\nof verb with ra-", `0`="scaled acceptance score\nof ra-less verb", `mps`="post-scaling morphological\npreference score")))+
-geom_jitter()+
-ylab(NULL)+xlab("age")+labs(color="Gender")
 
 # SECTION 5.3.7 IMPLICATIONAL HIERARCHIES?
 
